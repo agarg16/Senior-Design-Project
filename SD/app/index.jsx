@@ -3,8 +3,10 @@ import { Text, View, StyleSheet, SafeAreaView, TouchableOpacity } from "react-na
 
 var currentDay = new Date().getDate()
 var currentMonth = new Date().getMonth()
+var currentMonthName = getMonthName(currentMonth)
 var currentYear = new Date().getFullYear()
 
+// Returns the name of the current month being considered
 function getMonthName(month) {
   switch(month) {
     case 0:
@@ -40,12 +42,12 @@ const Index = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.homeCalendar}>
-        <Text style={{fontSize: 34, textAlign: 'center'}}>{getMonthName(currentMonth)} {currentDay}, {currentYear}</Text>
+        <Text style={{fontSize: 34, textAlign: 'center'}}>{currentMonthName}</Text>
         <Text style={{textAlign: 'center'}}>[Calendar]</Text>
       </View>
 
       <View style={styles.summary}>
-        <Text style={styles.summaryDate}>[Summary Date] </Text>
+        <Text style={styles.summaryDate}>{currentMonthName} {currentDay}, {currentYear}</Text>
 
         <Text>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</Text>
       </View>
