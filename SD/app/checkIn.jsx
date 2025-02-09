@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, View, StyleSheet, SafeAreaView } from "react-native"
+import { Text, View, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native"
 
 const CheckIn = () => {
   return (
@@ -10,9 +10,17 @@ const CheckIn = () => {
         <Text style={styles.activitiesTitle}>Activities</Text>
 
         <View style={{backgroundColor: 'azure', justifyContent: 'space-around', flex: 1}}>
-          <Text style={styles.activities}>Activity 1</Text>
-          <Text style={styles.activities}>Activity 2</Text>
-          <Text style={styles.activities}>Activity 3</Text>
+          <TouchableOpacity>
+            <Text style={styles.activities}>[Activity 1]</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity>
+            <Text style={styles.activities}>[Activity 2]</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity>
+            <Text style={styles.activities}>[Activity 3]</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
