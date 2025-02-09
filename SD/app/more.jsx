@@ -22,7 +22,7 @@ const DATA = [
 ]
 
 const Item = ({title}) => (
-  <TouchableOpacity style={{margin: (boxSize * 0.15)}}>
+  <TouchableOpacity style={{margin: (boxSize * 0.15), width: boxSize, height: boxSize, backgroundColor: 'lightblue', borderColor: '#6c8790', borderWidth: 2, justifyContent: 'center'}}>
     <Text style={styles.infoItem}>{title}</Text>
   </TouchableOpacity>
 )
@@ -38,7 +38,7 @@ const More = () => {
         scrollEnabled={false}
         numColumns={2}
         
-        contentContainerStyle={{flex: 1, justifyContent: 'center', alignItems: 'center'}}
+        contentContainerStyle={{flex: 1, alignItems: 'center', justifyContent: 'center', alignSelf: 'center'}}
       />
     </SafeAreaView>
   )
@@ -61,14 +61,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1
   },
   infoItem: {
-    backgroundColor: 'lightblue',
     fontSize: (boxSize * 0.18),
     textAlign: 'center',
-    borderColor: '#6c8790',
-    borderWidth: 2,
-    width: boxSize,
-    height: boxSize,
-    alignContent: 'center'
   }
 })
 
