@@ -22,8 +22,8 @@ const DATA = [
 ]
 
 const Item = ({title}) => (
-  <TouchableOpacity style={{margin: (boxSize * 0.15), width: boxSize, height: boxSize, backgroundColor: 'lightblue', borderColor: '#6c8790', borderWidth: 2, justifyContent: 'center'}}>
-    <Text style={styles.infoItem}>{title}</Text>
+  <TouchableOpacity style={styles.infoItemBox}>
+    <Text style={styles.infoItemText}>{title}</Text>
   </TouchableOpacity>
 )
 
@@ -32,13 +32,13 @@ const More = () => {
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Extra Information</Text>
       
-      <FlatList style={styles.moreInfoSection}
+      <FlatList
         data={DATA}
         renderItem={({item}) => <Item title={item.title} />}
         scrollEnabled={false}
         numColumns={2}
         
-        contentContainerStyle={{flex: 1, alignItems: 'center', justifyContent: 'center', alignSelf: 'center'}}
+        contentContainerStyle={styles.moreInfoSection}
       />
     </SafeAreaView>
   )
@@ -58,11 +58,24 @@ const styles = StyleSheet.create({
   moreInfoSection: {
     backgroundColor: 'azure',
     borderColor: 'black',
-    borderTopWidth: 1
+    borderTopWidth: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1
   },
-  infoItem: {
+  infoItemBox: {
+    backgroundColor: 'lightblue',
+    borderColor: '#6c8790',
+    borderWidth: 2,
+    width: boxSize,
+    height: boxSize,
+    margin: (boxSize * 0.15),
+    justifyContent: 'center'
+  },
+  infoItemText: {
     fontSize: (boxSize * 0.18),
-    textAlign: 'center',
+    textAlign: 'center'
   }
 })
 
