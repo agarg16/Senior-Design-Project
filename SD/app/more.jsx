@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, View, StyleSheet, SafeAreaView, FlatList, Dimensions, Platform } from "react-native"
+import { Text, StyleSheet, SafeAreaView, FlatList, Dimensions, Platform, TouchableOpacity } from "react-native"
 
 var width = 0
 var height = 0
@@ -22,9 +22,9 @@ const DATA = [
 ]
 
 const Item = ({title}) => (
-  <View style={{margin: (boxSize * 0.15)}}>
+  <TouchableOpacity style={{margin: (boxSize * 0.15)}}>
     <Text style={styles.infoItem}>{title}</Text>
-  </View>
+  </TouchableOpacity>
 )
 
 const More = () => {
@@ -32,13 +32,13 @@ const More = () => {
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Extra Information</Text>
       
-      <FlatList style={styles.moreInfo}
+      <FlatList style={styles.moreInfoSection}
         data={DATA}
         renderItem={({item}) => <Item title={item.title} />}
         scrollEnabled={false}
         numColumns={2}
         
-        contentContainerStyle={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}
+        contentContainerStyle={{flex: 1, justifyContent: 'center', alignItems: 'center'}}
       />
     </SafeAreaView>
   )
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
-  moreInfo: {
+  moreInfoSection: {
     backgroundColor: 'azure',
     borderColor: 'black',
     borderTopWidth: 1
@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     width: boxSize,
     height: boxSize,
+    alignContent: 'center'
   }
 })
 
