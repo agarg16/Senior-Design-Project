@@ -1,16 +1,51 @@
 import React from 'react'
 import { Text, View, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native"
 
+var currentDay = new Date().getDate()
+var currentMonth = new Date().getMonth()
+var currentYear = new Date().getFullYear()
+
+function getMonthName(month) {
+  switch(month) {
+    case 0:
+      return "January"
+    case 1:
+      return "February"
+    case 2:
+      return "March"
+    case 3:
+      return "April"
+    case 4:
+      return "May"
+    case 5:
+      return "June"
+    case 6:
+      return "July"
+    case 7:
+      return "August"
+    case 8:
+      return "September"
+    case 9:
+      return "October"
+    case 10:
+      return "November"
+    case 11:
+      return "December"
+    default:
+      return "N/A"
+  }
+}
+
 const Index = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.homeCalendar}>
-        <Text style={{fontSize: 40, textAlign: 'center'}}>[Date]</Text>
+        <Text style={{fontSize: 34, textAlign: 'center'}}>{getMonthName(currentMonth)} {currentDay}, {currentYear}</Text>
         <Text style={{textAlign: 'center'}}>[Calendar]</Text>
       </View>
 
       <View style={styles.summary}>
-        <Text style={styles.summaryDate}>[Summary Date]</Text>
+        <Text style={styles.summaryDate}>[Summary Date] </Text>
 
         <Text>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</Text>
       </View>
