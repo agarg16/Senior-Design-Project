@@ -42,7 +42,7 @@ const Index = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.homeCalendar}>
-        <Text style={{fontSize: 34, textAlign: 'center'}}>{currentMonthName}</Text>
+        <Text style={{fontSize: 34, textAlign: 'center'}}>{currentMonthName} {currentYear}</Text>
         <Text style={{textAlign: 'center'}}>[Calendar]</Text>
       </View>
 
