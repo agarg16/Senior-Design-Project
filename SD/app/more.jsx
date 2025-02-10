@@ -68,9 +68,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'lightblue',
     borderColor: '#6c8790',
     borderWidth: 2,
+    borderRadius: 20,
     width: boxSize,
     height: boxSize,
-    margin: (boxSize * 0.15),
+    margin: (boxSize * 0.10),
     justifyContent: 'center'
   },
   infoItemText: {
