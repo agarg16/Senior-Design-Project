@@ -52,9 +52,14 @@ const Index = () => {
         <Text>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</Text>
       </View>
 
-      <TouchableOpacity style={styles.addDaySection}>
-        <Text style={{textAlign: 'center'}}>[Add to/Edit Day Section]</Text>
-      </TouchableOpacity>
+      <View style={styles.modifyDaySection}>
+        <TouchableOpacity style={{justifyContent: 'center', borderRightWidth: 1, height: '100%', flex: 1}}>
+          <Text style={{textAlign: 'center'}}>[Add to Day]</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={{justifyContent: 'center', height: '100%', flex: 1}}>
+          <Text style={{textAlign: 'center'}}>[Edit Day]</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   )
 }
@@ -79,9 +84,12 @@ const styles = StyleSheet.create({
     paddingRight: '6%',
     flex: 5
   },
-  addDaySection: {
+  modifyDaySection: {
     backgroundColor: 'lightblue',
     justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
     flex: 1
   },
   summaryDate: {
