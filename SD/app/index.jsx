@@ -53,12 +53,16 @@ const Index = () => {
       </View>
 
       <View style={styles.modifyDaySection}>
-        <TouchableOpacity style={{justifyContent: 'center', borderRightWidth: 1, height: '100%', flex: 1}}>
-          <Text style={{textAlign: 'center'}}>[Add to Day]</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={{justifyContent: 'center', height: '100%', flex: 1}}>
-          <Text style={{textAlign: 'center'}}>[Edit Day]</Text>
-        </TouchableOpacity>
+        <View style={{height: '100%', borderRightWidth: 1, flex: 1}}>
+          <TouchableOpacity style={styles.modifyDayBox}>
+            <Text style={{textAlign: 'center'}}>[Add to Day]</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{height: '100%', flex: 1}}>
+          <TouchableOpacity style={{justifyContent: 'center', height: '100%'}}>
+            <Text style={{textAlign: 'center'}}>[Edit Day]</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   )
@@ -91,6 +95,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     flexDirection: 'row',
     flex: 1
+  },
+  modifyDayBox: {
+    height: '100%',
+    justifyContent: 'center'
   },
   summaryDate: {
     fontWeight: 'bold',
