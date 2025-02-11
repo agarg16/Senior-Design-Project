@@ -1,5 +1,17 @@
 import React from 'react'
-import { Text, View, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native"
+import { Text, View, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from "react-native"
+
+const ACTIVITIES = [
+  {title: '[Activity 1]'},
+  {title: '[Activity 2]'},
+  {title: '[Activity 3]'}
+]
+
+const Activities = ({title}) => (
+  <TouchableOpacity style={styles.activities}>
+    <Text style={{fontSize: 24, textAlign: 'center'}}>{title}</Text>
+  </TouchableOpacity>
+)
 
 const CheckIn = () => {
   return (
@@ -9,19 +21,14 @@ const CheckIn = () => {
       <View style={{flex: 5}}>
         <Text style={styles.activitiesTitle}>Activities</Text>
 
-        <View style={{backgroundColor: 'azure', justifyContent: 'space-around', flex: 1}}>
-          <TouchableOpacity>
-            <Text style={styles.activities}>[Activity 1]</Text>
-          </TouchableOpacity>
+        {/* Displays the various activities to choose from */}
+        <FlatList 
+          data={ACTIVITIES}
+          renderItem={({item}) => <Activities title={item.title} />}
+          scrollEnabled= {false}
 
-          <TouchableOpacity>
-            <Text style={styles.activities}>[Activity 2]</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity>
-            <Text style={styles.activities}>[Activity 3]</Text>
-          </TouchableOpacity>
-        </View>
+          contentContainerStyle={styles.activitiesBoxes}
+        />
       </View>
     </SafeAreaView>
   )
@@ -33,7 +40,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   question: {
-    fontSize: 40,
+    fontSize: 36,
     paddingLeft: '2%',
     paddingRight: '2%',
     paddingBottom: 12,
@@ -48,16 +55,23 @@ const styles = StyleSheet.create({
     fontSize: 36,
     padding: 16
   },
+  activitiesBoxes: {
+    backgroundColor: 'azure',
+    paddingTop: '5%',
+    paddingBottom: '5%',
+    justifyContent: 'space-around',
+    flex: 1
+  },
   activities: {
     backgroundColor: '#c2e2ec',
-    fontSize: 24,
     padding: 10,
     alignSelf: 'center',
-    textAlign: 'center',
     borderRadius: 10,
     borderColor: '#82a2ac',
     borderWidth: 2,
-    width: '50%'
+    width: '50%',
+    height: 80,
+    justifyContent: 'center'
   }
 })
 
