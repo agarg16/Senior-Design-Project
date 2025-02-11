@@ -12,7 +12,7 @@ else {
   width  = Dimensions.get('screen').width
   height = Dimensions.get('screen').height
 }
-const boxSize = width <= height ? (width * 0.3) : (height * 0.3)
+const boxSize = width <= height ? (width * 0.32) : (height * 0.32)
 
 const DATA = [
   { title: 'Journal' },
@@ -29,9 +29,11 @@ const Item = ({title}) => (
 
 const More = () => {
   return (
+    
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Extra Information</Text>
       
+      {/* Displays the boxes of info */}
       <FlatList
         data={DATA}
         renderItem={({item}) => <Item title={item.title} />}
@@ -51,7 +53,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 44,
-    padding: 4,
+    marginTop: 12,
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -71,7 +73,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     width: boxSize,
     height: boxSize,
-    margin: (boxSize * 0.10),
+    margin: (boxSize * 0.13),
     justifyContent: 'center'
   },
   infoItemText: {
