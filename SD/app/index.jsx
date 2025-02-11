@@ -1,10 +1,13 @@
 import React from 'react'
-import { Text, View, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native"
+import { Text, View, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from "react-native"
 
 var currentDay = new Date().getDate()
 var currentMonth = new Date().getMonth()
 var currentMonthName = getMonthName(currentMonth)
 var currentYear = new Date().getFullYear()
+// var totalDaysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0)
+// var firstDayDayOfWeek = ((new Date(currentYear, currentMonth, 1)).getDay())
+// const ALL_POSSIBLE_DAYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
 
 // Returns the name of the current month being considered
 function getMonthName(month) {
@@ -38,12 +41,29 @@ function getMonthName(month) {
   }
 }
 
+const DAYS_OF_WEEK = [ { title: 'Sun' }, { title: 'Mon' }, { title: 'Tues' }, { title: 'Wed' }, { title: 'Thurs' }, { title: 'Fri' }, { title: 'Sat' } ]
+
+const DayOfWeek = ({title}) => (
+  <View style={{margin: 10}}>
+    <Text style={{width: 50, textAlign: 'center'}}>{title}</Text>
+  </View>
+)
+
 const Index = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.homeCalendar}>
+      <View style={styles.homeCalendarSection}>
         <Text style={{fontSize: 34, textAlign: 'center'}}>{currentMonthName} {currentYear}</Text>
-        <Text style={{textAlign: 'center'}}>[Calendar]</Text>
+        
+        {/* Displays the days of the week at the top of the calendar */}
+        <FlatList 
+          data={DAYS_OF_WEEK}
+          renderItem={({item}) => <DayOfWeek title={item.title} />}
+          scrollEnabled={false}
+          numColumns={7}
+
+          contentContainerStyle={styles.calendar}
+        />
       </View>
 
       <View style={styles.summary}>
@@ -73,9 +93,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     flex: 1
   },
-  homeCalendar: {
+  homeCalendarSection: {
     padding: 4,
     flex: 7
+  },
+  calendar: {
+    backgroundColor: 'azure',
+    borderWidth: 1,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   summary: {
     backgroundColor: 'azure',
