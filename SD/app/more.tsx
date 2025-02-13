@@ -21,7 +21,9 @@ const DATA = [
   { title: 'Helpful Resources' }
 ]
 
-const Item = ({title}) => (
+type ItemProps = {title: string}
+
+const Item = ({title}: ItemProps) => (
   <TouchableOpacity style={styles.infoItemBox}>
     <Text style={styles.infoItemText}>{title}</Text>
   </TouchableOpacity>
