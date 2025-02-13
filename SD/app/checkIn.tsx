@@ -7,7 +7,9 @@ const ACTIVITIES = [
   {title: '[Activity 3]'}
 ]
 
-const Activities = ({title}) => (
+type ActivityProps = {title: string}
+
+const Activities = ({title}: ActivityProps) => (
   <TouchableOpacity style={styles.activities}>
     <Text style={{fontSize: 24, textAlign: 'center'}}>{title}</Text>
   </TouchableOpacity>
