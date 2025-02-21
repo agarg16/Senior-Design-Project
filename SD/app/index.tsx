@@ -1,10 +1,13 @@
 import React from 'react'
-import { Text, View, StyleSheet, SafeAreaView, Dimensions, Platform, TouchableOpacity } from "react-native"
+import { Text, View, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from "react-native"
 
 var currentDay = new Date().getDate()
 var currentMonth = new Date().getMonth()
 var currentMonthName = getMonthName(currentMonth)
 var currentYear = new Date().getFullYear()
+
+const curStartingDayOfWeek: number = new Date(currentYear, currentMonth, 1).getDay()
+var numDaysInCurMonth: number = new Date(currentYear, currentMonth + 1, 0).getDate()
 
 // Returns the name of the current month being considered
 function getMonthName(month: number) {
@@ -38,26 +41,62 @@ function getMonthName(month: number) {
   }
 }
 
-// Determines the height of the calendar day boxes
-var height = 0
-if(Platform.OS === 'web') {
-  height = Dimensions.get('window').height
-}
-else {
-  height = Dimensions.get('screen').height
-}
-const calendarDayBoxHeight = height / 24
+const DAYS_BOXES = [
+  {title: 1},
+  {title: 2},
+  {title: 3},
+  {title: 4},
+  {title: 5},
+  {title: 6},
+  {title: 7},
+  {title: 8},
+  {title: 9},
+  {title: 10},
+  {title: 11},
+  {title: 12},
+  {title: 13},
+  {title: 14},
+  {title: 15},
+  {title: 16},
+  {title: 17},
+  {title: 18},
+  {title: 19},
+  {title: 20},
+  {title: 21},
+  {title: 22},
+  {title: 23},
+  {title: 24},
+  {title: 25},
+  {title: 26},
+  {title: 27},
+  {title: 28},
+  {title: 29},
+  {title: 30},
+  {title: 31},
+  {title: 32},
+  {title: 33},
+  {title: 34},
+  {title: 35},
+  {title: 36},
+  {title: 37},
+  {title: 38},
+  {title: 39},
+  {title: 40},
+  {title: 41},
+  {title: 42},
+]
+
 
 const Index = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Calendar */}
-      <View style={{flex: 5.6, paddingLeft: '5%', paddingRight: '5%', paddingBottom: '5%', justifyContent: 'center'}}>
+      <View style={{flex: 5.6, paddingLeft: '5%', paddingRight: '5%', justifyContent: 'center'}}>
         {/* Displays the month name and year above the calendar */}
-        <Text style={{fontSize: 34, textAlign: 'center', padding: 4}}>{currentMonthName} {currentYear}</Text>
+        <Text style={{fontSize: 36, textAlign: 'center', padding: 8}}>{currentMonthName} {currentYear}</Text>
         
         {/* Displays the days of the week at the top of the calendar */}
-        <View style={{flexDirection: 'row', borderTopWidth: 1, borderLeftWidth: 1, borderRightWidth: 1}}>
+        <View style={{backgroundColor: 'azure', flexDirection: 'row', borderTopWidth: 1, borderLeftWidth: 1, borderRightWidth: 1, height: 36, alignItems: 'center'}}>
           <Text style={styles.calendarDaysOfWeek}>Sun</Text>
           <Text style={styles.calendarDaysOfWeek}>Mon</Text>
           <Text style={styles.calendarDaysOfWeek}>Tues</Text>
@@ -67,159 +106,29 @@ const Index = () => {
           <Text style={styles.calendarDaysOfWeek}>Sat</Text>
         </View>
 
+        
         {/* Displays 6 weeks-worth of days and a filler number for text in each day */}
-        <View>
-          {/* Week 1 */}
-          <View style={styles.calendarWeeksContainer}>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 1 */}
-              <Text style={styles.calendarDayText}>1</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 2 */}
-              <Text style={styles.calendarDayText}>2</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 3 */}
-              <Text style={styles.calendarDayText}>3</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 4 */}
-              <Text style={styles.calendarDayText}>4</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 5 */}
-              <Text style={styles.calendarDayText}>5</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 6 */}
-              <Text style={styles.calendarDayText}>6</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 7 */}
-              <Text style={styles.calendarDayText}>7</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Week 2 */}
-          <View style={styles.calendarWeeksContainer}>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 1 */}
-              <Text style={styles.calendarDayText}>8</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 2 */}
-              <Text style={styles.calendarDayText}>9</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 3 */}
-              <Text style={styles.calendarDayText}>10</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 4 */}
-              <Text style={styles.calendarDayText}>11</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 5 */}
-              <Text style={styles.calendarDayText}>12</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 6 */}
-              <Text style={styles.calendarDayText}>13</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 7 */}
-              <Text style={styles.calendarDayText}>14</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Week 3 */}
-          <View style={styles.calendarWeeksContainer}>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 1 */}
-              <Text style={styles.calendarDayText}>15</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 2 */}
-              <Text style={styles.calendarDayText}>16</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 3 */}
-              <Text style={styles.calendarDayText}>17</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 4 */}
-              <Text style={styles.calendarDayText}>18</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 5 */}
-              <Text style={styles.calendarDayText}>19</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 6 */}
-              <Text style={styles.calendarDayText}>20</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 7 */}
-              <Text style={styles.calendarDayText}>21</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Week 4 */}
-          <View style={styles.calendarWeeksContainer}>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 1 */}
-              <Text style={styles.calendarDayText}>22</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 2 */}
-              <Text style={styles.calendarDayText}>23</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 3 */}
-              <Text style={styles.calendarDayText}>24</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 4 */}
-              <Text style={styles.calendarDayText}>25</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 5 */}
-              <Text style={styles.calendarDayText}>26</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 6 */}
-              <Text style={styles.calendarDayText}>27</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 7 */}
-              <Text style={styles.calendarDayText}>28</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Week 5 */}
-          <View style={styles.calendarWeeksContainer}>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 1 */}
-              <Text style={styles.calendarDayText}>29</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 2 */}
-              <Text style={styles.calendarDayText}>30</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 3 */}
-              <Text style={styles.calendarDayText}>31</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 4 */}
-              <Text style={styles.calendarDayText}>32</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 5 */}
-              <Text style={styles.calendarDayText}>33</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 6 */}
-              <Text style={styles.calendarDayText}>34</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 7 */}
-              <Text style={styles.calendarDayText}>35</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Week 6 */}
-          <View style={styles.calendarWeeksContainer}>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 1 */}
-              <Text style={styles.calendarDayText}>36</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 2 */}
-              <Text style={styles.calendarDayText}>37</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 3 */}
-              <Text style={styles.calendarDayText}>38</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 4 */}
-              <Text style={styles.calendarDayText}>39</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 5 */}
-              <Text style={styles.calendarDayText}>40</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 6 */}
-              <Text style={styles.calendarDayText}>41</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.calendarDayOutlines}> {/* Day 7 */}
-              <Text style={styles.calendarDayText}>42</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <FlatList
+          data={DAYS_BOXES}
+          renderItem={({index}) => {
+            return(
+              /* DAYS_BOXES.length - (numDaysInCurMonth + curStartingDayOfWeek) < 7 ? */
+                index >= curStartingDayOfWeek ? 
+                  index < (numDaysInCurMonth + curStartingDayOfWeek) ? 
+                    <TouchableOpacity style={styles.calendarDayOutlines}>
+                      <Text style={styles.calendarDayText}>{(index - curStartingDayOfWeek) + 1}</Text>
+                    </TouchableOpacity>
+                  : <View style={styles.calendarDayOutlines}><Text></Text></View>
+                : <View style={styles.calendarDayOutlines}><Text></Text></View>
+              /* : null */
+            )
+          }}
+          scrollEnabled={false}
+          numColumns={7}
+          contentContainerStyle={{}}
+        />
       </View>
+      
 
       {/* Summary */}
       <View style={styles.summary}>
@@ -251,20 +160,18 @@ const styles = StyleSheet.create({
     flex: 1
   },
   calendarDaysOfWeek: {
-    backgroundColor: 'azure',
     fontSize: 20,
     textAlign: 'center',
-    height: 36,
     alignContent: 'center',
     flex: 1
   },
   calendarDayOutlines: {
     borderWidth: 1,
     justifyContent: 'center',
-    flex: 1
+    alignItems: 'center',
+    flex: 1,
   },
   calendarWeeksContainer: {
-    height: calendarDayBoxHeight,
     flexDirection: 'row'
   },
   calendarDayText: {
