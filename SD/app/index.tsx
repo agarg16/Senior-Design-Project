@@ -1,11 +1,8 @@
 import React, { useState } from 'react'
-import { Text, View, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Image } from "react-native"
+import { Text, View, StyleSheet, SafeAreaView, FlatList, Dimensions, Platform, TouchableOpacity, Image } from "react-native"
 import { getMonthName } from '../additionalFiles/getMonthName.js' // Returns the name of the current month being considered
 
 const curDate = new Date() // Currently selected date to be displayed (defaults to actual date)
-
-const curStartingDayOfWeek: number = new Date(curDate.getFullYear(), curDate.getMonth(), 1).getDay()   // Day of the week (as a number) representing the first day of the current month falls on
-const numDaysInCurMonth: number = new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate() // Number of days in the currently selected month
 
 // All of the potential boxes that could be displayed on the calendar (6 possible weeks of 7 days = 42)
 const DAYS_BOXES = [
@@ -53,10 +50,10 @@ const DAYS_BOXES = [
   {id: 42},
 ]
 
-
 const Index = () => {
-  const [curMonth, setCurMonth] = useState(curDate.getMonth())
-  const [curYear, setCurYear] = useState(curDate.getFullYear())
+  const [curDay, setCurDay] = useState(curDate.getDate())       // Updates the current day to be the day selected by the user
+  const [curMonth, setCurMonth] = useState(curDate.getMonth())  // Updates the current month to be the month selected by the user
+  const [curYear, setCurYear] = useState(curDate.getFullYear()) // Updates the current year to be the year selected by the user
 
   // Updates Calendar Header when one of the arrow buttons are pressed
   const updateCalendarHeader = (directionChanged: number) => {
@@ -72,19 +69,24 @@ const Index = () => {
     }
   }
 
-  // Updates the current day to be the day selected by the user
-  const [curDay, setCurDay] = useState(curDate.getDate())
-  
+  // Updates the day of the week of the month that was selected by the user's first day
+  const [curStartingDayOfWeek, setCurStartingDayOfWeek] = useState(new Date(curDate.getFullYear(), curDate.getMonth(), 1).getDay())
+
+  // Updates the number of days in the month that was selected by the user
+  const [numDaysInCurMonth, setNumDaysInCurMonth] = useState(new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate())
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Calendar */}
-      <View style={{flex: 4.5, paddingLeft: '5%', paddingRight: '5%', marginBottom: '2.5%', justifyContent: 'center'}}>
+      <View style={{flex: 4, paddingLeft: '5%', paddingRight: '5%', marginBottom: '5%', justifyContent: 'flex-start'}}>
         {/* Displays the month name and year above the calendar */}
-        <View style={{marginBottom: '1%', alignItems: 'center', justifyContent: 'center', flexDirection: 'row'}}>
+        <View style={{alignItems: 'center', justifyContent: 'center', flexDirection: 'row'}}>
           {/* Left Arrow Button */}
           <TouchableOpacity style={styles.arrowButtonsLocation} onPress={() => {
             curDate.setMonth(curDate.getMonth() - 1)
             {updateCalendarHeader(-1)}
+            setCurStartingDayOfWeek(new Date(curDate.getFullYear(), curDate.getMonth(), 1).getDay())
+            setNumDaysInCurMonth(new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate())
           }}>
             <Image style={styles.arrowButtonsImgs} source={require('../assets/images/leftArrow.png')} accessibilityLabel='Left Arrow' />
           </TouchableOpacity>
@@ -96,6 +98,8 @@ const Index = () => {
           <TouchableOpacity style={styles.arrowButtonsLocation} onPress={() => {
             curDate.setMonth(curDate.getMonth() + 1)
             {updateCalendarHeader(1)}
+            setCurStartingDayOfWeek(new Date(curDate.getFullYear(), curDate.getMonth(), 1).getDay())
+            setNumDaysInCurMonth(new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate())
           }}>
             <Image style={styles.arrowButtonsImgs} source={require('../assets/images/rightArrow.png')} />
           </TouchableOpacity>
@@ -103,7 +107,7 @@ const Index = () => {
 
 
         {/* Displays the days of the week and days in the calendar */}
-        <View style={{}}>
+        <View>
           {/* Displays the days of the week at the top of the calendar */}
           <View style={styles.calendarWeeksContainer}>
             <Text style={styles.calendarDaysOfWeek}>Sun</Text>
@@ -118,7 +122,7 @@ const Index = () => {
           
           {/* Displays 6 weeks-worth of days and a filler number for text in each day */}
           <FlatList
-            data={DAYS_BOXES}
+            data={DAYS_BOXES.slice(0, Math.ceil((numDaysInCurMonth + curStartingDayOfWeek) / 7) * 7)} // Ensures only the necesary weeks are displayed (entire blank weeks prevented)
             renderItem={({index}) => {
               return(
                 index >= curStartingDayOfWeek ? 
@@ -215,7 +219,7 @@ const styles = StyleSheet.create({
     paddingTop: '4%',
     paddingLeft: '6%',
     paddingRight: '6%',
-    flex: 5
+    flex: 4.5
   },
   modifyDaySection: {
     backgroundColor: 'lightblue',
