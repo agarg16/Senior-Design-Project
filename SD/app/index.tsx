@@ -2,6 +2,26 @@ import React, { useState } from 'react'
 import { Text, View, StyleSheet, SafeAreaView, FlatList, Dimensions, Platform, TouchableOpacity, Image } from "react-native"
 import { getMonthName } from '../additionalFiles/getMonthName.js' // Returns the name of the current month being considered
 
+const calendarFlexSize = 4 // The flex size for the portion of the tab dedicated to the calendar
+
+let width = 0 // Width of screen
+let height = 0 // Height of screen
+let daysBoxHeight = 0 // Height of the boxes holding the days of the current month
+
+// Determines the width and height of the screen and sets the boxes holding the days of the calendar month to a size
+if(Platform.OS === 'web') {
+  width = Dimensions.get('window').width
+  height = Dimensions.get('window').height
+
+  daysBoxHeight = width <= height? width / 30 : height / 30
+}
+else {
+  width = Dimensions.get('screen').width
+  height = Dimensions.get('screen').height
+
+  daysBoxHeight = width <= height? (width * 0.0725) - (width * 0.005): (height * 0.035) - (height * 0.0001)
+}
+
 const curDate = new Date() // Currently selected date to be displayed (defaults to actual date)
 
 // All of the potential boxes that could be displayed on the calendar (6 possible weeks of 7 days = 42)
@@ -78,7 +98,7 @@ const Index = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Calendar */}
-      <View style={{flex: 4, paddingLeft: '5%', paddingRight: '5%', marginBottom: '5%', justifyContent: 'flex-start'}}>
+      <View style={{flex: calendarFlexSize, paddingLeft: '5%', paddingRight: '5%', marginBottom: '5%', justifyContent: 'flex-start'}}>
         {/* Displays the month name and year above the calendar */}
         <View style={{alignItems: 'center', justifyContent: 'center', flexDirection: 'row'}}>
           {/* Left Arrow Button */}
@@ -149,7 +169,10 @@ const Index = () => {
       <View style={styles.summary}>
         <Text style={styles.summaryDate}>{getMonthName(curDate.getMonth())} {curDate.getDate()}, {curDate.getFullYear()}</Text>
 
-        <Text>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</Text>
+        <Text>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna 
+          aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
+          aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
+          cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</Text>
       </View>
 
 
@@ -195,6 +218,7 @@ const styles = StyleSheet.create({
   calendarDayOutlines: {
     borderWidth: 0.5,
     borderColor: '#898989',
+    height: daysBoxHeight,
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
