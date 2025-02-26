@@ -1,6 +1,8 @@
-import React, { useState } from 'react'
-import { Text, View, StyleSheet, SafeAreaView, FlatList, Dimensions, Platform, TouchableOpacity, Image } from "react-native"
+import React, { useState, useEffect } from 'react'
+import { Text, View, StyleSheet, TextInput, Button, SafeAreaView, FlatList, Dimensions, Platform, TouchableOpacity, Image } from "react-native"
 import { getMonthName } from '../additionalFiles/getMonthName.js' // Returns the name of the current month being considered
+import db from '../database/database';
+import { insertJournalEntry, getJournalEntries, setJournalEntry} from '../database/database';
 
 const calendarFlexSize = 4 // The flex size for the portion of the tab dedicated to the calendar
 
@@ -23,6 +25,7 @@ else {
 }
 
 const curDate = new Date() // Currently selected date to be displayed (defaults to actual date)
+
 
 // All of the potential boxes that could be displayed on the calendar (6 possible weeks of 7 days = 42)
 const DAYS_BOXES = [
@@ -70,6 +73,8 @@ const DAYS_BOXES = [
   {id: 42},
 ]
 
+
+
 const Index = () => {
   const [curDay, setCurDay] = useState(curDate.getDate())       // Updates the current day to be the day selected by the user
   const [curMonth, setCurMonth] = useState(curDate.getMonth())  // Updates the current month to be the month selected by the user
@@ -94,6 +99,42 @@ const Index = () => {
 
   // Updates the number of days in the month that was selected by the user
   const [numDaysInCurMonth, setNumDaysInCurMonth] = useState(new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate())
+
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [entry, setEntry] = useState("");
+  const [entries, setEntries] = useState<{ id: number; date: string; entry: string }[]>([]);
+
+  const getCurrentDateString = (): string => curDate.toISOString().split("T")[0];
+  const selectedEntry = entries.find(e => e.date === getCurrentDateString());
+
+  const handleAddEntry = async () => {
+    if (!entry.trim()) return;
+    const currentDate = getCurrentDateString();
+
+    const existingEntry = entries.find(e => e.date === currentDate);
+
+    if (existingEntry) {
+      await setJournalEntry(currentDate, entry);
+    }
+    else {
+      await insertJournalEntry(currentDate, entry);
+    }
+
+    await fetchEntries(currentDate);
+  };
+
+  const fetchEntries = async (date: string) => {
+    const allEntries = await getJournalEntries();
+    setEntries(allEntries);
+
+    const selectedEntry = entries.find(e => e.date === date);
+    setEntry(selectedEntry ? selectedEntry.entry : ""); 
+  };
+
+  useEffect(() => {
+    fetchEntries(getCurrentDateString());
+  }, []);
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -144,10 +185,14 @@ const Index = () => {
           <FlatList
             data={DAYS_BOXES.slice(0, Math.ceil((numDaysInCurMonth + curStartingDayOfWeek) / 7) * 7)} // Ensures only the necesary weeks are displayed (entire blank weeks prevented)
             renderItem={({index}) => {
+              const day = index - curStartingDayOfWeek + 1;
+              const isSelected = curDate.getDate() === day;
               return(
                 index >= curStartingDayOfWeek ? 
                   index < (numDaysInCurMonth + curStartingDayOfWeek) ? 
-                    <TouchableOpacity style={styles.calendarDayOutlines} onPress={() => {
+                    <TouchableOpacity
+                    style={[styles.calendarDayOutlines, isSelected && styles.selectedDay]}
+                    onPress={() => {
                       curDate.setDate((index - curStartingDayOfWeek) + 1)
                       {setCurDay((index - curStartingDayOfWeek) + 1)}
                     }}>
@@ -162,35 +207,44 @@ const Index = () => {
             contentContainerStyle={{}}
           />
         </View>
-      </View>
+
+      {/* "Today" Button */}
+      <TouchableOpacity
+        style={styles.todayButton}
+        onPress={() => {
+          const today = new Date();
+          curDate.setFullYear(today.getFullYear(), today.getMonth(), today.getDate());
+          setCurDay(today.getDate());
+        }}>
+        <Text style={styles.todayButtonText}>Today</Text>
+      </TouchableOpacity>
+    </View>
 
 
       {/* Summary */}
-      <View style={styles.summary}>
-        <Text style={styles.summaryDate}>{getMonthName(curDate.getMonth())} {curDate.getDate()}, {curDate.getFullYear()}</Text>
+      <View style={{ padding: 15, borderWidth: 1, marginBottom: 10 }}>
+        <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+          {curDate.toLocaleString('default', { month: 'long' })} {curDate.getDate()}, {curDate.getFullYear()}
+        </Text>
+        <Text>{selectedEntry ? selectedEntry.entry : "No journal entry for this day."}</Text>
 
-        <Text>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna 
-          aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
-          aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
-          cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</Text>
-      </View>
-
-
-      {/* Add/Edit Day Buttons */}
-      <View style={styles.modifyDaySection}>
-        <View style={{height: '100%', borderRightWidth: 1, flex: 1}}>
-          <TouchableOpacity style={styles.modifyDayBox}>
-            <Text style={{textAlign: 'center'}}>[Add to Day]</Text>
-          </TouchableOpacity>
+        {/* Entry Input */}
+        <TextInput
+          style={styles.journalInput}
+          multiline
+          placeholder={entry ? entry : "Write your journal entry here..."}
+          placeholderTextColor={entry ? "black" : "gray"}
+          value={entry}
+          onChangeText={setEntry}
+        />
         </View>
-        <View style={{height: '100%', flex: 1}}>
-          <TouchableOpacity style={styles.modifyDayBox}>
-            <Text style={{textAlign: 'center'}}>[Edit Day]</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView>
-  )
+
+        {/* Save Entry Button */}
+        <TouchableOpacity style={{ padding: 10, backgroundColor: "#ddd" }} onPress={handleAddEntry}>
+          <Text style={{ textAlign: "center" }}>[Edit Entry]</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+      );
 }
 
 const styles = StyleSheet.create({
@@ -234,16 +288,22 @@ const styles = StyleSheet.create({
   calendarDayText: {
     textAlign: 'center'
   },
-  summary: {
-    backgroundColor: 'azure',
-    borderColor: 'black',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    fontSize: 14,
-    paddingTop: '4%',
-    paddingLeft: '6%',
-    paddingRight: '6%',
-    flex: 4.5
+    selectedDay: {
+    backgroundColor: '#add8e6', // Light blue background to highlight selected day
+    borderRadius: 10, 
+  },
+  todayButton: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+    borderRadius: 5,
+  },
+
+  todayButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   modifyDaySection: {
     backgroundColor: 'lightblue',
@@ -258,11 +318,16 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center'
   },
-  summaryDate: {
-    fontWeight: 'bold',
+  journalInput: {
+    height: 120,
+    borderColor: '#aaa',
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
     fontSize: 16,
-    marginBottom: 16
-  } 
+    backgroundColor: 'white',
+    textAlignVertical: 'top',
+  },
 })
 
 export default Index
