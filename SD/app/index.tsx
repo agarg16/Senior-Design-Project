@@ -5,21 +5,18 @@ import db from '../database/database';
 import { insertJournalEntry, getJournalEntries, setJournalEntry } from '../database/database';
 
 const calendarFlexSize = 4 // The flex size for the portion of the tab dedicated to the calendar
-
-let width = 0 // Width of screen
-let height = 0 // Height of screen
 let daysBoxHeight = 0 // Height of the boxes holding the days of the current month
 
 // Determines the width and height of the screen and sets the boxes holding the days of the calendar month to a size
 if (Platform.OS === 'web') {
-  width = Dimensions.get('window').width
-  height = Dimensions.get('window').height
+  let width = Dimensions.get('window').width
+  let height = Dimensions.get('window').height
 
   daysBoxHeight = width <= height ? width / 30 : height / 30
 }
 else {
-  width = Dimensions.get('screen').width
-  height = Dimensions.get('screen').height
+  let width = Dimensions.get('screen').width
+  let height = Dimensions.get('screen').height
 
   daysBoxHeight = width <= height ? (width * 0.0725) - (width * 0.005) : (height * 0.035) - (height * 0.0001)
 }
@@ -28,49 +25,12 @@ const curDate = new Date() // Currently selected date to be displayed (defaults 
 
 // All of the potential boxes that could be displayed on the calendar (6 possible weeks of 7 days = 42)
 const DAYS_BOXES = [
-  { id: 1 },
-  { id: 2 },
-  { id: 3 },
-  { id: 4 },
-  { id: 5 },
-  { id: 6 },
-  { id: 7 },
-  { id: 8 },
-  { id: 9 },
-  { id: 10 },
-  { id: 11 },
-  { id: 12 },
-  { id: 13 },
-  { id: 14 },
-  { id: 15 },
-  { id: 16 },
-  { id: 17 },
-  { id: 18 },
-  { id: 19 },
-  { id: 20 },
-  { id: 21 },
-  { id: 22 },
-  { id: 23 },
-  { id: 24 },
-  { id: 25 },
-  { id: 26 },
-  { id: 27 },
-  { id: 28 },
-  { id: 29 },
-  { id: 30 },
-  { id: 31 },
-  { id: 32 },
-  { id: 33 },
-  { id: 34 },
-  { id: 35 },
-  { id: 36 },
-  { id: 37 },
-  { id: 38 },
-  { id: 39 },
-  { id: 40 },
-  { id: 41 },
-  { id: 42 },
-]
+   { id: 1 }, {  id: 2 }, {  id: 3 }, {  id: 4 }, {  id: 5 }, {  id: 6 }, {  id: 7 },
+   { id: 8 }, {  id: 9 }, { id: 10 }, { id: 11 }, { id: 12 }, { id: 13 }, { id: 14 },
+  { id: 15 }, { id: 16 }, { id: 17 }, { id: 18 }, { id: 19 }, { id: 20 }, { id: 21 },
+  { id: 22 }, { id: 23 }, { id: 24 }, { id: 25 }, { id: 26 }, { id: 27 }, { id: 28 },
+  { id: 29 }, { id: 30 }, { id: 31 }, { id: 32 }, { id: 33 }, { id: 34 }, { id: 35 },
+  { id: 36 }, { id: 37 }, { id: 38 }, { id: 39 }, { id: 40 }, { id: 41 }, { id: 42 }]
 
 
 
@@ -99,7 +59,7 @@ const Index = () => {
   // Updates the number of days in the month that was selected by the user
   const [numDaysInCurMonth, setNumDaysInCurMonth] = useState(new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate())
 
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+//const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [entry, setEntry] = useState("");
   const [entries, setEntries] = useState<{ id: number; date: string; entry: string }[]>([]);
 
@@ -197,7 +157,9 @@ const Index = () => {
                             curDate.setDate((index - curStartingDayOfWeek) + 1)
                             { setCurDay((index - curStartingDayOfWeek) + 1) }
                           }}>
-                          <Text style={[styles.calendarDayText, isSelected && styles.selectedDay]}>{(index - curStartingDayOfWeek) + 1}</Text>
+                            <View style={isSelected && styles.selectedDay}>
+                          <Text style={[styles.calendarDayText]}>{(index - curStartingDayOfWeek) + 1}</Text>
+                          </View>
                         </TouchableOpacity>
                         : <View style={styles.calendarDayOutlines}><Text></Text></View>
                       : <View style={styles.calendarDayOutlines}><Text></Text></View>
@@ -205,7 +167,6 @@ const Index = () => {
                 }}
                 scrollEnabled={false}
                 numColumns={7}
-                contentContainerStyle={{}}
               />
             </View>
 
@@ -228,10 +189,19 @@ const Index = () => {
 
           {/* Summary */}
           <View style={{ backgroundColor: 'azure', padding: 15, borderWidth: 1, marginBottom: 8 }}>
-            {/* Current Date and Whether or Not There Are Journal Entries */}
-            <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
-              {curDate.toLocaleString('default', { month: 'long' })} {curDate.getDate()}, {curDate.getFullYear()}
-            </Text>
+            {/* Current Date, Delete Button, and Whether or Not There Are Journal Entries */}
+            <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+              {/* Current Date */}
+              <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
+                {curDate.toLocaleString('default', { month: 'long' })} {curDate.getDate()}, {curDate.getFullYear()}
+              </Text>
+
+              {/* Delete Button */}
+              <TouchableOpacity style={{width: '25%', alignItems: 'flex-end'}} onPress={undefined}>
+                <Text style={{color: '#555555', fontSize: 14, textDecorationLine: 'underline', marginTop: '2%', marginRight: '6%'}}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+            {/* Whether or Not There Are Journal Entries */}
             <Text style={{marginBottom: 5}}>{selectedEntry ? selectedEntry.entry : "No journal entry for this day."}</Text>
 
             {/* Entry Input */}
@@ -249,7 +219,7 @@ const Index = () => {
 
           {/* Save Entry Button */}
           <TouchableOpacity style={{ padding: 10, backgroundColor: "#ddd", borderWidth: 0.25 }} onPress={handleAddEntry}>
-            <Text style={{ textAlign: "center" }}>[Edit Entry]</Text>
+            <Text style={{ textAlign: "center" }}>Insert Entry</Text>
           </TouchableOpacity>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -297,13 +267,13 @@ const styles = StyleSheet.create({
   },
   calendarDayText: {
     textAlign: 'center',
-    width: 25,
-    height: 25,
-    paddingTop: 4.15
   },
   selectedDay: {
     backgroundColor: '#add8e6', // Light blue background to highlight selected day
-    borderRadius: 50
+    borderRadius: 50,
+    width: daysBoxHeight * 0.8,
+    height: daysBoxHeight * 0.8,
+    justifyContent: 'center'
   },
   todayButton: {
     marginTop: 10,
@@ -318,8 +288,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
     textShadowColor: 'black',
-    textShadowOffset: { width: 0.5, height: 0.5 },
-    textShadowRadius: 2
+    textShadowOffset: { width: 0.3, height: 0.3 },
+    textShadowRadius: 1
   },
   modifyDaySection: {
     backgroundColor: 'lightblue',
