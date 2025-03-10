@@ -1,148 +1,256 @@
-import React, { useState } from 'react'
-import { Text, TextInput, View, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Dimensions, Modal, Keyboard, KeyboardAvoidingView, TouchableWithoutFeedback, Platform } from "react-native"
+import React, { useEffect, useState } from 'react'
+import { Text, TextInput, View, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Modal, Keyboard, KeyboardAvoidingView, TouchableWithoutFeedback, Platform } from "react-native"
 import { Ionicons } from '@expo/vector-icons'
 
-const width =  Dimensions.get('screen').width // Width of entire screen
-const height = Dimensions.get('screen').height // Height of entire screen
-const boxSize = width <= height ? (width * 0.10) + 80 : (height * 0.10) + 80 // Basic size of activity box
-
-/* List of the activities to choose from */
-const ACTIVITIES = [
-  {title: '[Activity 1]'},
-  {title: '[Activity 2]'},
-  {title: '[Activity 3]'},
-  {title: '[Activity 4]'},
-  {title: '[Activity 5]'},
-  {title: '[Activity 6]'},
-  {title: '[Activity 7]'}
-]
-
-
+import { addDate,
+         updateBreakfast, getBreakfast,
+         updateLunch,     getLunch,
+         updateDinner,    getDinner,
+         updateSnacks,    getSnacks,
+         updateWater,     getWater
+        } from '../database/database'
 
 const CheckIn = () => {
-  const [activityAmntInfo, setActivityAmntInfo] = useState(0) // Individual input for a selected activity amount box
-  const [listOfActivityAmnts, setListOfActivityAmnts] = useState([0]) // All of the input for a chosen activity
+  const [textInputVal, setTextInputVal] = useState("")
+
+  const [keyboardTypeName, setKeyboardTypeName] = useState("default")
   const [activityModalVisible, setActivityModalVisible] = useState(false) // Whether or not the modal is visible to the user
   const [selectedActivity, setSelectedActivity] = useState("") // The activity the user selected
+  const [selectedActivityUnit, setSelectedActivityUnit] = useState("")
+  const [selectedActivityText, setSelectedActivityText] = useState("")
+  const [selectedActivityVal, setSelectedActivityVal] = useState(0)
 
-  // Adds a new box to put in an activity amount
-  const addActivityAmntBox = () => {
-    setListOfActivityAmnts( listOfActivityAmnts => {
-      return (
-        [...listOfActivityAmnts, Number()]
-      )
-    })
+  const [curDate, setCurDate] = useState(new Date().toISOString().split("T")[0]) // The current date
+  //const [userAddedActivities, setUserAddedActivities] = useState([]) // List of all of the user's added activities
+
+  /* Adds the current date into the table (if it is not already there) */
+  const addDateIntoTable = async () => { await addDate(curDate) }
+
+  // Updates the value for breakfast for the current day
+  const updateBreakfastValue = async () => {
+    try { await updateBreakfast(selectedActivityText, curDate) }
+    catch (error) { console.log(error) }
   }
 
-  // Modifies what value is stored at an index position in the list of all activity amounts
-  const editActivityAmntBox = (index: number) => {
-    let allActivityAmnts = [...listOfActivityAmnts] // All of the activity amount info
-    allActivityAmnts[index] = activityAmntInfo
-
-    setListOfActivityAmnts(allActivityAmnts)
+  // Updates the value for lunch for the current day
+  const updateLunchValue = async () => {
+    try { await updateLunch(selectedActivityText, curDate) }
+    catch (error) { console.log(error) }
   }
 
-  // Removes an activity amount box
-  const removeActivityAmntBox = (index: number) => {
-    const allOtherActivityAmnts = [...listOfActivityAmnts] // All of the other activity amount info to be inputted back into list of all activity amounts
-
-    if(listOfActivityAmnts.length > 1) { // > 1 boxes remaining
-      allOtherActivityAmnts.splice(index, 1)
-    }
-    else { // Only one box remaining
-      allOtherActivityAmnts[index] = 0
-    }
-
-    setListOfActivityAmnts(allOtherActivityAmnts)
+  // Updates the value for dinner for the current day
+  const updateDinnerValue = async () => {
+    try { await updateDinner(selectedActivityText, curDate) }
+    catch (error) { console.log(error) }
   }
+
+  // Updates the value for snacks for the current day
+  const updateSnackValue = async () => {
+    try { await updateSnacks(selectedActivityText, curDate) }
+    catch (error) { console.log(error) }
+  }
+
+  // Updates the value for water for the current day
+  const updateWaterValue = async () => {
+    try { await updateWater(selectedActivityText, curDate) }
+    catch (error) { console.log(error) }
+  }
+
+
+
+  // Finds what breakfast the user has entered for the current day
+  const getBreakfastValue = async () => {
+    const breakfast = await getBreakfast(curDate)
+
+    setSelectedActivityText(breakfast[0].breakfastMeal)
+  }
+
+  // Finds what lunch the user has entered for the current day
+  const getLunchValue = async () => {
+    const lunch = await getLunch(curDate)
+
+    setSelectedActivityText(lunch[0].lunchMeal)
+  }
+
+  // Finds what dinner the user has entered for the current day
+  const getDinnerValue = async () => {
+    const dinner = await getDinner(curDate)
+
+    setSelectedActivityText(dinner[0].dinnerMeal)
+  }
+
+  // Finds what snacks the user has entered for the current day
+  const getSnackValue = async () => {
+    const snack = await getSnacks(curDate)
+
+    setSelectedActivityText(snack[0].snackMeal)
+  }
+
+  // Finds what water the user has entered for the current day
+  const getWaterValue = async () => {
+    const water = await getWater(curDate)
+
+    // Ensures the user doesn't see "null" in the text input box when there is no water total for the given date
+    if(water[0].waterTotal !== null) { setSelectedActivityVal(water[0].waterTotal) }
+    else { setSelectedActivityVal(0) }
+  }
+
+  useEffect(() => { addDateIntoTable() }, []) // Creates a new date for the current date (if it doesn't already exist)
+  useEffect(() => { setTextInputVal(selectedActivityText) }, [selectedActivityText]) // Updates the default value in the text input to be a non-numerical value
+  useEffect(() => { setTextInputVal(String(selectedActivityVal)) }, [selectedActivityVal]) // Updates the default value in the text input to be a numerical value (converted to string form)
 
   return (
     <>
       {/* The Main Check-In Screen */}
-      <SafeAreaView style={styles.container}>
-        {/* Question Section */}
-          <Text style={styles.question}>[Example Question to Go Here]</Text>
-          
-          {/* Activities Section */}
-          <View style={{backgroundColor: 'azure', flex: 5}}>
-            {/* Activities Header */}
-            <Text style={styles.activitiesTitle}>Activities</Text>
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <SafeAreaView style={styles.container}>
+          <KeyboardAvoidingView  behavior={Platform.OS === 'ios' ? "padding" : undefined} style={{flex: 1}}>
+            {/* Question Section */}
+            <Text style={styles.question}>[Example Question to Go Here]</Text>
+            
+            {/* Activities Section */}
+            <View style={{backgroundColor: 'azure', flex: 5}}>
+              {/* Activities Header */}
+              <View style={styles.activitiesTitleHeader}>
+                <Text style={styles.activitiesTitleText}>Activities</Text>
+              </View>
 
-            {/* Displays the various activities to choose from */}
-            <FlatList 
-              data={ACTIVITIES}
-              renderItem={({item}) => {
-                return (
-                  <TouchableOpacity style={styles.activities} onPress={() => {
+
+              {/* Default Activities Buttons */} 
+              <View>
+                {/* Food & Drinks Category */}
+                <Text style={{fontSize: 22, padding: 8, textAlign: 'center'}}>Food & Drinks</Text>
+                <View style={{flexDirection: 'row', marginBottom: 8, marginRight: 4, justifyContent: 'center'}}>
+                  {/* Breakfast Button */}
+                  <TouchableOpacity style={styles.defaultActivities} onPress={() => {
                     {setActivityModalVisible(true)}
-                    {setSelectedActivity(item.title)}
-                    }}>
-                    <Text style={{fontSize: 20, padding: 8, textAlign: 'center'}}>{item.title}</Text>
+                    {setSelectedActivity("Breakfast")}
+                    {setSelectedActivityUnit("Meal")}
+                    {getBreakfastValue()}
+                    {setKeyboardTypeName("default")}
+                    {setTextInputVal(selectedActivityText)}
+                  }}>
+                    <Text style={styles.textInActivityBox}>Breakfast</Text>
                   </TouchableOpacity>
-                )
-              }}
-              numColumns={2}
-              contentContainerStyle={styles.activitiesBoxes}
-            />
-          </View>
+
+                  {/* Lunch Button */}
+                  <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setActivityModalVisible(true)}
+                    {setSelectedActivity("Lunch")}
+                    {setSelectedActivityUnit("Meal")}
+                    {getLunchValue()}
+                    {setKeyboardTypeName("default")}
+                    {setTextInputVal(selectedActivityText)}
+                  }}>
+                    <Text style={styles.textInActivityBox}>Lunch</Text>
+                  </TouchableOpacity>
+
+                  {/* Dinner Button */}
+                  <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setActivityModalVisible(true)}
+                    {setSelectedActivity("Dinner")}
+                    {setSelectedActivityUnit("Meal")}
+                    {getDinnerValue()}
+                    {setKeyboardTypeName("default")}
+                    {setTextInputVal(selectedActivityText)}
+                  }}>
+                    <Text style={styles.textInActivityBox}>Dinner</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={{flexDirection: 'row', marginBottom: 4, marginRight: 4, justifyContent: 'center'}}>
+                  {/* Snacks Button */}
+                  <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setActivityModalVisible(true)}
+                    {setSelectedActivity("Snacks")}
+                    {setSelectedActivityUnit("Meal")}
+                    {getSnackValue()}
+                    {setKeyboardTypeName("default")}
+                    {setTextInputVal(selectedActivityText)}
+                  }}>
+                    <Text style={styles.textInActivityBox}>Snacks</Text>
+                  </TouchableOpacity>
+
+                  {/* Water Button */}
+                  <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setActivityModalVisible(true)}
+                    {setSelectedActivity("Water")}
+                    {setSelectedActivityUnit("Ounces")}
+                    {getWaterValue()}
+                    {setKeyboardTypeName("decimal-pad")}
+                    {setTextInputVal(String(selectedActivityVal))}
+                  }}>
+                    <Text style={styles.textInActivityBox}>Water</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Moods, Sleep, & Journal Category */}
+                <Text style={{fontSize: 22, padding: 8, textAlign: 'center'}}>Moods, Sleep, & Journal</Text>
+                <View style={{flexDirection: 'row', marginBottom: 8, marginRight: 4, justifyContent: 'space-around'}}>
+                  <TouchableOpacity style={styles.defaultActivities}><Text style={styles.textInActivityBox}>Morning Mood</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.defaultActivities}><Text style={styles.textInActivityBox}>Midday Mood</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.defaultActivities}><Text style={styles.textInActivityBox}>Night Mood</Text></TouchableOpacity>
+                </View>
+                <View style={{flexDirection: 'row', marginBottom: 4, marginRight: 4, justifyContent: 'center'}}>
+                  <TouchableOpacity style={[styles.defaultActivities, {alignSelf: 'center'}]}><Text style={styles.textInActivityBox}>Sleep Total</Text></TouchableOpacity>
+                  <TouchableOpacity style={[styles.defaultActivities, {alignSelf: 'center'}]}><Text style={styles.textInActivityBox}>Journal Entry</Text></TouchableOpacity>
+                </View>
+
+                {/* Extra Activities Category */}
+                <Text style={{fontSize: 22, padding: 10, textAlign: 'center'}}>Extra Activities</Text>
+                <View style={{height: 48, width: 96, alignSelf: 'center'}}>
+                  {/* Plus Button */}
+                  <TouchableOpacity style={modalStyles.addButton}>
+                    <Ionicons name="add-circle-outline" color={'#629AAC'} size={48} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
       </SafeAreaView>
+    </TouchableWithoutFeedback>
 
     {/* The Selected Activity Button's Screen */}
     <Modal visible={activityModalVisible} onRequestClose={() => setActivityModalVisible(false)} animationType='slide' presentationStyle='pageSheet'>
       <SafeAreaView style={modalStyles.container}>
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? "padding" : undefined} style={{backgroundColor: 'azure', flex: 1}}>
-              {/* Back Button */}
-              <TouchableOpacity style={modalStyles.backButton} onPress={() => setActivityModalVisible(false)}>
-                <Ionicons name="chevron-back" color={'#18576D'} size={20} />
-                <Text style={{color: '#18576D', fontSize: 16}}>Back</Text>
-              </TouchableOpacity>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? "padding" : undefined} style={{backgroundColor: 'azure', flex: 1}}>
+            {/* Back Button */}
+            <TouchableOpacity style={modalStyles.backButton} onPress={() => setActivityModalVisible(false)}>
+              <Ionicons name="chevron-back" color={'#18576D'} size={20} />
+              <Text style={{color: '#18576D', fontSize: 16}}>Back</Text>
+            </TouchableOpacity>
 
-              {/* Activity Inserts Section */}
-              <View style={{marginLeft: '6%', marginRight: '6%', paddingTop: '5%', flex: 7}}>
-                {/* Activity Name */}
-                <Text style={{fontSize: 42, textAlign: 'center', paddingBottom: 20}}>{selectedActivity}</Text>
-
-                {/* Box to Insert Activity-Related Info */}
-                <View style={{flex: 1}}>
-                  <FlatList
-                    showsVerticalScrollIndicator={false}
-                    data={listOfActivityAmnts}
-                    renderItem={({index}) => {
-                      return(
-                        <TouchableOpacity  style={modalStyles.boxStyling} activeOpacity={1}>
-                          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                            {/* Amount of Activity Wording */}
-                            <View style={{justifyContent: 'center'}}>
-                              <Text style={modalStyles.unitsLabel}>Amount of Activity:</Text>
-                            </View>
-                    
-                            {/* Delete Button */}
-                            <TouchableOpacity style={modalStyles.deleteButton} onPress={() => {
-                              removeActivityAmntBox(index)
-                            }}>
-                              <Text style={modalStyles.deleteButtonText}>Delete</Text>
-                            </TouchableOpacity>
-                          </View>
-                          {/* Input Text Box */}
-                          <TextInput 
-                            style={modalStyles.inputBox}
-                            onChangeText={newText => setActivityAmntInfo(Number(newText))}
-                            onEndEditing={() => { editActivityAmntBox(index) }}
-                            defaultValue={String(listOfActivityAmnts[index])}
-                          />
-                        </TouchableOpacity>
-                      )
-                    }}
-                  />
+            {/* Selected Activity's Name and Unit*/}
+            <View>
+              {/* Selected Activity's Unit */}
+              <Text style={{fontSize: 48, padding: 20, alignSelf: 'center'}}>{selectedActivity}</Text>
+              <View style={modalStyles.boxStyling}>
+                <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                  {/* Selected Activity's Unit */}
+                  <Text style={modalStyles.unitsLabel}>{selectedActivityUnit}:</Text>
+                  
+                  {/* Save Button */}
+                  <TouchableOpacity style={modalStyles.saveButton} onPress={() => {
+                    if     (selectedActivity == "Breakfast") { updateBreakfastValue() }
+                    else if(selectedActivity == "Lunch"    ) { updateLunchValue()     }
+                    else if(selectedActivity == "Dinner"   ) { updateDinnerValue()    }
+                    else if(selectedActivity == "Snacks"   ) { updateSnackValue()     }
+                    else if(selectedActivity == "Water"    ) { updateWaterValue()     }
+                  }}>
+                    <Text style={modalStyles.saveButtonText}>Save</Text>
+                  </TouchableOpacity>
                 </View>
-              </View> 
 
-              {/* Plus (Add) Button */}
-              <TouchableOpacity style={modalStyles.addButton} onPress={() => { addActivityAmntBox() }}>
-                <Ionicons name="add-circle-outline" color={'#629AAC'} size={48} />
-              </TouchableOpacity>
-            </KeyboardAvoidingView>
+                {/* Input Text Box */}
+                <TextInput style={modalStyles.inputBox} 
+                  onChangeText={ newText => { setSelectedActivityText(newText) } }
+                  multiline
+                  keyboardType={keyboardTypeName == "default" ? 'default' : 'decimal-pad'}
+                  defaultValue={textInputVal}
+                />
+              </View>
+            </View>
+          </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
       </SafeAreaView>
     </Modal>
@@ -163,31 +271,31 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     textAlign: 'center'
   },
-  activitiesTitle: {
+  activitiesTitleHeader: {
     backgroundColor: 'lightblue',
     borderColor: 'black',
     borderTopWidth: 1,
     borderBottomWidth: 1,
+    padding: 16,
+    justifyContent: 'center',
+    flexDirection: 'row'
+  },
+  activitiesTitleText: {
     textAlign: 'center',
-    fontSize: 36,
-    padding: 16
+    fontSize: 36
   },
-  activitiesBoxes: {
-    backgroundColor: 'azure',
-    paddingTop: 10,
-    paddingBottom: 10,
-    alignItems: 'center',
-    flexGrow: 1
+  textInActivityBox: {
+    fontSize: 16,
+    textAlign: 'center',
+    padding: 8
   },
-  activities: {
+  defaultActivities: {
     backgroundColor: '#c2e2ec',
-    borderRadius: 10,
+    borderRadius: 20,
     borderColor: '#82a2ac',
     borderWidth: 2,
-    width: boxSize + 50,
-    height: boxSize,
-    justifyContent: 'center',
-    margin: (boxSize * 0.13)
+    marginLeft: 5,
+    width: 132
   }
 })
 
@@ -212,34 +320,37 @@ const modalStyles = StyleSheet.create({
     borderRadius: 8,
     paddingLeft: '4%',
     paddingRight: '4%',
-    paddingBottom: '4%',
-    marginBottom: 16
+    paddingTop: 8,
+    paddingBottom: 24,
+    marginLeft: 8,
+    marginRight: 8
   },
   unitsLabel: {
-    fontSize: 18,
-    paddingTop: '2%',
+    fontSize: 28,
     paddingBottom: '2%',
     justifyContent: 'center'
   },
-  deleteButton: {
+  saveButton: {
     width: '40%',
     alignItems: 'flex-end',
     justifyContent: 'center'
   },
-  deleteButtonText: {
+  saveButtonText: {
     color: '#3D3C3C',
     textDecorationLine: 'underline',
     fontSize: 14,
     marginRight: '4%',
     paddingTop: '4%',
-    paddingBottom: '2%'
+    paddingBottom: '4%'
   },
   inputBox: {
     backgroundColor: 'white',
     borderColor: 'gray',
     borderWidth: 1,
     height: 36,
-    padding: 8
+    padding: 8,
+    width: '100%',
+    alignSelf: 'center'
   },
   addButton: {
     height: '100%',
