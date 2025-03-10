@@ -4,8 +4,6 @@ import { Ionicons } from '@expo/vector-icons'
 import { setupDatabase } from '../database/database'
 
 export default function TabLayout() {
-
-
   useEffect(() => {
       const initDB = async () => {
         await setupDatabase();
@@ -28,7 +26,7 @@ export default function TabLayout() {
       <Tabs.Screen 
         name="more" 
         options={{ title: 'Learn More', 
-        tabBarIcon: ({ color, size }) => <Ionicons name="information-circle" color={color} size={size} />
+        tabBarIcon: ({ color, size }) => <Ionicons name="library" color={color} size={size} />
         }} 
       />
     </Tabs>
