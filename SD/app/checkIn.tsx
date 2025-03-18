@@ -1,62 +1,46 @@
 import React, { useEffect, useState } from 'react'
-import { Text, TextInput, View, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Modal, Keyboard, KeyboardAvoidingView, TouchableWithoutFeedback, Platform } from "react-native"
+import { Text, TextInput, View, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Modal, Keyboard, KeyboardAvoidingView, TouchableWithoutFeedback, Platform, Image } from "react-native"
 import { Ionicons } from '@expo/vector-icons'
 
 import { addDate,
-         updateBreakfast, getBreakfast,
-         updateLunch,     getLunch,
-         updateDinner,    getDinner,
-         updateSnacks,    getSnacks,
-         updateWater,     getWater
+         updateFood, getBreakfast,
+         getLunch, getDinner,
+         getSnacks, updateWater, 
+         getWater, updateMood,
+         getMorningMood, getMiddayMood, getNighttimeMood,
+         getSleepTotal, updateSleepTotal
         } from '../database/database'
 
 const CheckIn = () => {
-  const [textInputVal, setTextInputVal] = useState("")
+  const [updateTextWith, setUpdateTextWith] = useState("") // A way to update the text useStates
+  const [textInputVal, setTextInputVal] = useState("") // A default value to display in the activity input text box
 
-  const [keyboardTypeName, setKeyboardTypeName] = useState("default")
+  const [keyboardTypeName, setKeyboardTypeName] = useState("default")     // The keyboard type to bring up when the user goes to fill in an activity amount
   const [activityModalVisible, setActivityModalVisible] = useState(false) // Whether or not the modal is visible to the user
-  const [selectedActivity, setSelectedActivity] = useState("") // The activity the user selected
-  const [selectedActivityUnit, setSelectedActivityUnit] = useState("")
-  const [selectedActivityText, setSelectedActivityText] = useState("")
-  const [selectedActivityVal, setSelectedActivityVal] = useState(0)
+  const [selectedActivity, setSelectedActivity] = useState("")            // The name of the activity the user selected
+  const [selectedActivityUnit, setSelectedActivityUnit] = useState("")    // The unit of measurement for the current activity being looked at
+  const [selectedActivityText, setSelectedActivityText] = useState("")    // The text-based input of the activity being looked at (meals for example)
+  const [selectedActivityVal, setSelectedActivityVal] = useState(0)       // The numerical-based input of the activity being looked at (mood and sleep for example)
 
   const [curDate, setCurDate] = useState(new Date().toISOString().split("T")[0]) // The current date
   //const [userAddedActivities, setUserAddedActivities] = useState([]) // List of all of the user's added activities
 
-  /* Adds the current date into the table (if it is not already there) */
+  // Adds the current date into the table (if it is not already there)
   const addDateIntoTable = async () => { await addDate(curDate) }
 
-  // Updates the value for breakfast for the current day
-  const updateBreakfastValue = async () => {
-    try { await updateBreakfast(selectedActivityText, curDate) }
-    catch (error) { console.log(error) }
-  }
-
-  // Updates the value for lunch for the current day
-  const updateLunchValue = async () => {
-    try { await updateLunch(selectedActivityText, curDate) }
-    catch (error) { console.log(error) }
-  }
-
-  // Updates the value for dinner for the current day
-  const updateDinnerValue = async () => {
-    try { await updateDinner(selectedActivityText, curDate) }
-    catch (error) { console.log(error) }
-  }
-
-  // Updates the value for snacks for the current day
-  const updateSnackValue = async () => {
-    try { await updateSnacks(selectedActivityText, curDate) }
-    catch (error) { console.log(error) }
-  }
+  // Updates the value for a meal (breakfast, lunch, dinner, or snack) for the current day
+  const updateMeal = async (mealType: string) => { await updateFood(selectedActivityText, curDate, mealType) }
 
   // Updates the value for water for the current day
-  const updateWaterValue = async () => {
-    try { await updateWater(selectedActivityText, curDate) }
-    catch (error) { console.log(error) }
-  }
+  const updateWaterValue = async () => { await updateWater(selectedActivityText, curDate) }
 
+  // Updates the value for a mood (morning, midday, or nighttime) for the current day
+  const updateMoodVal = async (timeOfDay: string) => { await updateMood(selectedActivityText, curDate, timeOfDay) }
 
+  // Updates the value for the sleep total for a given day
+  const updateSleepValue = async () => { await updateSleepTotal(selectedActivityText, curDate) }
+
+  
 
   // Finds what breakfast the user has entered for the current day
   const getBreakfastValue = async () => {
@@ -95,10 +79,147 @@ const CheckIn = () => {
     else { setSelectedActivityVal(0) }
   }
 
+  // Finds what mood the user has entered for the current day based on the mood selected
+  const getMoodValue = async(timeOfDay: string) => {
+    if(timeOfDay == "Morning Mood") {
+      const morningVal = await getMorningMood(curDate)
+
+      // Ensures the mood doesn't see "null" in the text input box when there is no value for the given date
+      if(morningVal[0].morningMood !== null) { setSelectedActivityVal(morningVal[0].morningMood) }
+      else { setSelectedActivityVal(0) }
+    }
+    else if (timeOfDay == "Midday Mood") {
+      const middayVal = await getMiddayMood(curDate)
+
+      // Ensures the mood doesn't see "null" in the text input box when there is no value for the given date
+      if(middayVal[0].middayMood !== null) { setSelectedActivityVal(middayVal[0].middayMood) }
+      else { setSelectedActivityVal(0) }
+    }
+    else {
+      const nighttimeVal = await getNighttimeMood(curDate)
+
+      // Ensures the mood doesn't see "null" in the text input box when there is no value for the given date
+      if(nighttimeVal[0].nighttimeMood !== null) { setSelectedActivityVal(nighttimeVal[0].nighttimeMood) }
+      else { setSelectedActivityVal(0) }
+    }
+  }
+
+
+
+  // Finds what sleep total the user has entered for the current day
+  const getSleepValue = async () => {
+    const sleep = await getSleepTotal(curDate)
+
+    // Ensures the user doesn't see "null" in the text input box when there is no water total for the given date
+    if(sleep[0].sleepTotal !== null) { setSelectedActivityVal(sleep[0].sleepTotal) }
+    else { setSelectedActivityVal(0) }
+  }
+
+  var textBox = ""
+  const [finalTextBoxContent, setFinalTextBoxContent] = useState("") // Allows the selectedActivityText to be updated immediately upon change in numerical input from text input
+  const [defaultMood, setDefaultMood] = useState(String(selectedActivityVal)) // Allows the selectedActivityText to be updated immediately upon change in mood selection
+  /* The type of view that displays when the user selects an activity */
+  type ViewType = { name: string }
+  const ActivityView = (props: ViewType) => {
+    if(props.name.includes("Mood")) {
+      return (
+        <View style={{alignItems: 'center'}}>
+          {/* Mood Images to Choose From */}
+          <View style={{justifyContent: 'space-between', flexDirection: 'row'}}>
+            <TouchableOpacity onPress={() => {
+              {setSelectedActivityText("1")}
+            }}>
+              <Image source={require('../assets/images/1.png')} style={{width: 45, height: 45, margin: 4}}/>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => {
+              {setSelectedActivityText("2")}
+            }}>
+              <Image source={require('../assets/images/2.png')} style={{width: 45, height: 45, margin: 4}}/>
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={() => {
+              {setSelectedActivityText("3")}
+            }}>
+              <Image source={require('../assets/images/3.png')} style={{width: 45, height: 45, margin: 4}}/>
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={() => {
+              {setSelectedActivityText("4")}
+            }}>
+              <Image source={require('../assets/images/4.png')} style={{width: 45, height: 45, margin: 4}}/>
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={() => {
+              {setSelectedActivityText("5")}
+            }}>
+              <Image source={require('../assets/images/5.png')} style={{width: 45, height: 45, margin: 4}}/>
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={() => {
+              {setSelectedActivityText("6")}
+            }}>
+              <Image source={require('../assets/images/6.png')} style={{width: 45, height: 45, margin: 4}}/>
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={() => {
+              {setSelectedActivityText("7")}
+            }}>
+              <Image source={require('../assets/images/7.png')} style={{width: 45, height: 45, margin: 4}}/>
+            </TouchableOpacity>
+          </View>
+
+          {/* The Current Selected Mood Displayed */}
+          <View style={{backgroundColor: 'azure', marginTop: 16, padding: 4, alignItems: 'center', borderWidth: 1, borderRadius: 10, width: '75%'}}>
+            <Text style={{fontSize: 20}}>Current Selected Mood:</Text>
+              {(selectedActivityText=="" || selectedActivityText=="0") && <Text style={{fontSize: 16, margin: 17}}>None</Text>}
+              {selectedActivityText=="1" && <Image source={require('../assets/images/1.png')} style={{width: 45, height: 45, margin: 4}}/>}
+              {selectedActivityText=="2" && <Image source={require('../assets/images/2.png')} style={{width: 45, height: 45, margin: 4}}/>}
+              {selectedActivityText=="3" && <Image source={require('../assets/images/3.png')} style={{width: 45, height: 45, margin: 4}}/>}
+              {selectedActivityText=="4" && <Image source={require('../assets/images/4.png')} style={{width: 45, height: 45, margin: 4}}/>}
+              {selectedActivityText=="5" && <Image source={require('../assets/images/5.png')} style={{width: 45, height: 45, margin: 4}}/>}
+              {selectedActivityText=="6" && <Image source={require('../assets/images/6.png')} style={{width: 45, height: 45, margin: 4}}/>}
+              {selectedActivityText=="7" && <Image source={require('../assets/images/7.png')} style={{width: 45, height: 45, margin: 4}}/>}
+          </View>
+        </View>
+      )
+    }
+    else {
+      return (
+        /* Input Text Box */
+        <TextInput style={modalStyles.inputBox} 
+        onChangeText={ newText => { textBox = newText } }
+        multiline
+        keyboardType={keyboardTypeName == "default" ? 'default' : 'decimal-pad'}
+        defaultValue={textInputVal}
+      />
+      )
+    }
+  }
+
   useEffect(() => { addDateIntoTable() }, []) // Creates a new date for the current date (if it doesn't already exist)
   useEffect(() => { setTextInputVal(selectedActivityText) }, [selectedActivityText]) // Updates the default value in the text input to be a non-numerical value
   useEffect(() => { setTextInputVal(String(selectedActivityVal)) }, [selectedActivityVal]) // Updates the default value in the text input to be a numerical value (converted to string form)
+  useEffect(() => { setSelectedActivity(updateTextWith) }, [updateTextWith]) // Updates the selected activity (so it is accurate with what the user selected immediately)
+  useEffect(() => { // Finds the value of the currently selected activity based on the most accurate version of the selected activity
+    if(selectedActivity.includes("Mood")) { getMoodValue(selectedActivity) } // Mood
+    else if(selectedActivity == "Water") { getWaterValue() }                 // Water
+    else if(selectedActivity == "Sleep Total") { getSleepValue() }           // Sleep
+  }, [selectedActivity])
+  useEffect(() => { setSelectedActivityText(String(selectedActivityVal)) }, [selectedActivityVal]) // Sets the selectedActivityText to reflect the most accurate version of the selcted mood
+  useEffect(() => { setSelectedActivityText(defaultMood) }, [defaultMood]) // Ensures the selectedActivityText is updated with the mood stored in the database for the current mood selected to use as a default mood
+  useEffect(() => { setSelectedActivityText(finalTextBoxContent) }, [finalTextBoxContent])
+  useEffect(() => { // Stores the value of the currently selected activity based on the most accurate version of the selected activity
+    if(selectedActivity == "Water") {
+      updateWaterValue()
+    }
+    else if(selectedActivity == "Sleep Total") {
+      updateSleepValue()
+    }
+  }, [selectedActivityText])
 
+
+  /* Main Check-In Return */
   return (
     <>
       {/* The Main Check-In Screen */}
@@ -173,9 +294,8 @@ const CheckIn = () => {
                   {/* Water Button */}
                   <TouchableOpacity style={styles.defaultActivities} onPress={() => {
                     {setActivityModalVisible(true)}
-                    {setSelectedActivity("Water")}
+                    {setUpdateTextWith("Water")}
                     {setSelectedActivityUnit("Ounces")}
-                    {getWaterValue()}
                     {setKeyboardTypeName("decimal-pad")}
                     {setTextInputVal(String(selectedActivityVal))}
                   }}>
@@ -183,16 +303,45 @@ const CheckIn = () => {
                   </TouchableOpacity>
                 </View>
 
-                {/* Moods, Sleep, & Journal Category */}
-                <Text style={{fontSize: 22, padding: 8, textAlign: 'center'}}>Moods, Sleep, & Journal</Text>
+                {/* Moods & Sleep Category */}
+                <Text style={{fontSize: 22, padding: 8, textAlign: 'center'}}>Moods & Sleep</Text>
                 <View style={{flexDirection: 'row', marginBottom: 8, marginRight: 4, justifyContent: 'space-around'}}>
-                  <TouchableOpacity style={styles.defaultActivities}><Text style={styles.textInActivityBox}>Morning Mood</Text></TouchableOpacity>
-                  <TouchableOpacity style={styles.defaultActivities}><Text style={styles.textInActivityBox}>Midday Mood</Text></TouchableOpacity>
-                  <TouchableOpacity style={styles.defaultActivities}><Text style={styles.textInActivityBox}>Night Mood</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setActivityModalVisible(true)}
+                    {setSelectedActivityUnit("12 AM-8 AM")}
+                    {setUpdateTextWith("Morning Mood")}
+                    {setDefaultMood(String(selectedActivityVal))}
+                  }}>
+                    <Text style={styles.textInActivityBox}>Morning Mood</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setActivityModalVisible(true)}
+                    {setSelectedActivityUnit("9 AM-4 PM")}
+                    {setUpdateTextWith("Midday Mood")}
+                    {setDefaultMood(String(selectedActivityVal))}
+                  }}>
+                    <Text style={styles.textInActivityBox}>Midday Mood</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setActivityModalVisible(true)}
+                    {setSelectedActivityUnit("5 PM-11 PM")}
+                    {setUpdateTextWith("Night Mood")}
+                    {setDefaultMood(String(selectedActivityVal))}
+                  }}>
+                    <Text style={styles.textInActivityBox}>Night Mood</Text>
+                  </TouchableOpacity>
                 </View>
                 <View style={{flexDirection: 'row', marginBottom: 4, marginRight: 4, justifyContent: 'center'}}>
-                  <TouchableOpacity style={[styles.defaultActivities, {alignSelf: 'center'}]}><Text style={styles.textInActivityBox}>Sleep Total</Text></TouchableOpacity>
-                  <TouchableOpacity style={[styles.defaultActivities, {alignSelf: 'center'}]}><Text style={styles.textInActivityBox}>Journal Entry</Text></TouchableOpacity>
+                  <TouchableOpacity style={[styles.defaultActivities, {alignSelf: 'center'}]} onPress={() => {
+                    {console.log("well...you pressed the sleep one")}
+                    {setActivityModalVisible(true)}
+                    {setUpdateTextWith("Sleep Total")}
+                    {setSelectedActivityUnit("Hours")}
+                    {setKeyboardTypeName("decimal-pad")}
+                    {setTextInputVal(String(selectedActivityVal))}
+                  }}>
+                    <Text style={styles.textInActivityBox}>Sleep Total</Text>
+                  </TouchableOpacity>
                 </View>
 
                 {/* Extra Activities Category */}
@@ -231,23 +380,17 @@ const CheckIn = () => {
                   
                   {/* Save Button */}
                   <TouchableOpacity style={modalStyles.saveButton} onPress={() => {
-                    if     (selectedActivity == "Breakfast") { updateBreakfastValue() }
-                    else if(selectedActivity == "Lunch"    ) { updateLunchValue()     }
-                    else if(selectedActivity == "Dinner"   ) { updateDinnerValue()    }
-                    else if(selectedActivity == "Snacks"   ) { updateSnackValue()     }
-                    else if(selectedActivity == "Water"    ) { updateWaterValue()     }
+                    if(selectedActivity == "Water")            { setFinalTextBoxContent(textBox) }
+                    else if(selectedActivity.includes("Mood")) { console.log("USING SAVE BUTTON: " + selectedActivityText); updateMoodVal(selectedActivity) }
+                    else if(selectedActivity == "Sleep Total") { setFinalTextBoxContent(textBox) }
+                    else { updateMeal(selectedActivity) }
                   }}>
                     <Text style={modalStyles.saveButtonText}>Save</Text>
                   </TouchableOpacity>
                 </View>
 
-                {/* Input Text Box */}
-                <TextInput style={modalStyles.inputBox} 
-                  onChangeText={ newText => { setSelectedActivityText(newText) } }
-                  multiline
-                  keyboardType={keyboardTypeName == "default" ? 'default' : 'decimal-pad'}
-                  defaultValue={textInputVal}
-                />
+                {/* Displays different layout on modal depending on whether or not a mood button was selected */}
+                <ActivityView name={selectedActivity} />
               </View>
             </View>
           </KeyboardAvoidingView>
@@ -331,15 +474,14 @@ const modalStyles = StyleSheet.create({
     justifyContent: 'center'
   },
   saveButton: {
-    width: '40%',
-    alignItems: 'flex-end',
+    width: '20%',
+    alignItems: 'center',
     justifyContent: 'center'
   },
   saveButtonText: {
     color: '#3D3C3C',
     textDecorationLine: 'underline',
     fontSize: 14,
-    marginRight: '4%',
     paddingTop: '4%',
     paddingBottom: '4%'
   },
