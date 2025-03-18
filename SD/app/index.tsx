@@ -26,7 +26,8 @@ const DAYS_BOXES =
 
 
 const Index = () => {
-  const [modalType, setModalType] = useState(0)
+  const [modalType, setModalType] = useState(0) // Determines what modal opens (either the journal view or search view)
+  const [clearButtonUpdate, setClearButtonUpdate] = useState(false) // Resets the search radius of the start/end dates in the search modal
 
   const [curDay, setCurDay] = useState(curDate.getDate())       // Updates the current day to be the day selected by the user
   const [curMonth, setCurMonth] = useState(curDate.getMonth())  // Updates the current month to be the month selected by the user
@@ -34,6 +35,8 @@ const Index = () => {
 
   const [viewModalVisible, setViewModalVisible] = useState(false) // Whether or not the view modal is visible to the user
   const [modalTypeSelected, setModalTypeSelected] = useState("")  // A numerical representation of the modal type that the user selected
+
+  const [textToDisplay, setTextToDisplay] = useState("")
 
   // Updates Calendar Header when one of the arrow buttons are pressed
   const updateCalendarHeader = (directionChanged: number) => {
@@ -55,8 +58,6 @@ const Index = () => {
   // Updates the number of days in the month that was selected by the user
   const [numDaysInCurMonth, setNumDaysInCurMonth] = useState(new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate())
 
-  const [userYearText, setUserYearText] = useState(curDate.getFullYear())
-
   const [userEntryText, setUserEntryText] = useState("") // The text entered into the TextInput by the user
   const [visibleEntry, setVisibleEntry] = useState("")   // The journal entry that corresponds to the day that was selected for viewing
 
@@ -77,15 +78,6 @@ const Index = () => {
     getCurDateEntry(currentEnteredDate)
   }
 
-  // Finds the current day's entry when either the view modal is visible or the current day is modified
-  useEffect(() => {getCurDateEntry((new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate())).toISOString().split("T")[0])}, [viewModalVisible === true, curDay])
-
-  // Ensures the correct modal (journal entry or search) is opened on the first press of the selected button
-  useEffect(() => {
-    if(modalType === 0) { setModalTypeSelected("journal-entry") }
-    else { setModalTypeSelected("search") }
-  }, [modalType])
-
   /* Stores search feature's start year, month, day, and the full date converted into the database's string format */
   const [startYear, setStartYear] = useState(2020) // The year the user selects as the start year in the filter (default as arbitrary year)
   const [startMonth, setStartMonth] = useState(0)  // The month the user selects as the start month in the filter (default as January)
@@ -101,6 +93,15 @@ const Index = () => {
   const [updateUsingSearchButton, setUpdateUsingSearchButton] = useState(false) // Switches between true and false when search button is pressed to trigger useEffect for updating start and end dates
 
   const [filteredJournalEntries, setFilteredJournalEntries] = useState<{date: string, journalEntry: string}[]>([]) // The returned values after the filter query has been applied to the journal entries
+
+  // Finds the current day's entry when either the view modal is visible or the current day is modified
+  useEffect(() => {getCurDateEntry((new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate())).toISOString().split("T")[0])}, [viewModalVisible === true, curDay])
+
+  // Ensures the correct modal (journal entry or search) is opened on the first press of the selected button
+  useEffect(() => {
+    if(modalType === 0) { setModalTypeSelected("journal-entry") }
+    else { setModalTypeSelected("search") }
+  }, [modalType])
 
   /* Updates the date for the filter Start date that the user enters */
   useEffect(() => {
@@ -143,6 +144,23 @@ const Index = () => {
   }
   useEffect(() => { filterJournalEntries() }, [updateUsingSearchButton])
 
+  // Resets the start/end dates and keywords so the user does not have to manually remove each category
+  useEffect(() => {
+    setStartYear(2020)
+    setStartMonth(0)
+    setStartDay(1)
+    setStartDateString(new Date(startYear, startMonth, startDay).toISOString().split("T")[0])
+
+    setEndYear(new Date().getFullYear())
+    setEndMonth(11)
+    setEndDay(31)
+    setEndDateString(new Date(endYear, endMonth, endDay).toISOString().split("T")[0])
+
+    setKeyword("")
+
+    setTextToDisplay("")
+  }, [clearButtonUpdate])
+
   return (
     <>
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -152,6 +170,8 @@ const Index = () => {
             <TouchableOpacity style={{backgroundColor: 'azure', borderWidth: 1, flexDirection: 'row', height: 38}} onPress={() => {
               {setViewModalVisible(true)}
               {setModalType(1)}
+              {setKeyword("")}
+              {setClearButtonUpdate(!clearButtonUpdate)}
               }}>
               <Text style={{color: 'gray', fontSize: 18, width: '100%', textAlign: 'center', alignSelf: 'center'}}>Search for Entry</Text>
               <Ionicons style={{color: 'gray', fontSize: 28, padding: 4, position: 'absolute', right: 0}} name='search-outline' />
@@ -288,7 +308,7 @@ const Index = () => {
       </TouchableWithoutFeedback>
       
       {/* Displays Selected Modal (Journal Entry or Search) */}
-      {modalTypeSelected === "journal-entry" ?
+      { modalTypeSelected === "journal-entry" ?
         /* Journal Entry Modal */
         <Modal visible={viewModalVisible} onRequestClose={() => setViewModalVisible(false)} animationType='slide' presentationStyle='pageSheet'>
           <SafeAreaView style={journalEntryModalStyles.container}>
@@ -300,8 +320,9 @@ const Index = () => {
                   <Text style={{color: '#18576D', fontSize: 16}}>Back</Text>
                 </TouchableOpacity>
 
-                <ScrollView style={{padding: 8, paddingLeft: 16, paddingRight: 16}}>
-                  <Text>{visibleEntry}</Text>
+                <Text style={{fontSize: 32, textAlign: 'center', padding: 4}}>{getMonthName(curDate.getMonth())} {curDate.getDate()}, {curDate.getFullYear()}</Text>
+                <ScrollView style={{}} contentContainerStyle={{backgroundColor: 'white', borderWidth: 1, borderRadius: 10, padding: 16, margin: 16}}>
+                    <Text>{visibleEntry}</Text>
                 </ScrollView>
               </KeyboardAvoidingView>
             </TouchableWithoutFeedback>
@@ -312,7 +333,7 @@ const Index = () => {
       : <Modal visible={viewModalVisible} onRequestClose={() => setViewModalVisible(false)} animationType='slide' presentationStyle='pageSheet'>
           <SafeAreaView style={searchModalStyles.container}>
             <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-              <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? "padding" : undefined} style={{ flex: 1 }}>
+              <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? "padding" : undefined} style={{ backgroundColor: 'white', flex: 1 }}>
                 {/* Back Button */}
                 <TouchableOpacity style={searchModalStyles.backButton} onPress={() => setViewModalVisible(false)}>
                   <Ionicons name="chevron-back" color={'#18576D'} size={20} />
@@ -320,7 +341,8 @@ const Index = () => {
                 </TouchableOpacity>
 
                 {/* Search Options Box */}
-                <View style={{backgroundColor: 'white', margin: 20, paddingTop: 8, paddingBottom: 8, borderWidth: 1, borderRadius: 20}}>
+                <View style={{borderBottomWidth: 1}}>
+                <View style={{backgroundColor: 'azure', margin: 20, paddingTop: 8, paddingBottom: 8, borderWidth: 1, borderRadius: 20}}>
                   {/* Start and End Input Dates */}
                   <View style={{justifyContent: 'space-evenly', flexDirection: 'row'}}>
                     {/* Start Date Input */}
@@ -435,9 +457,12 @@ const Index = () => {
                     </TouchableOpacity>
                   </View>
                 </View>
+                </View>
+
+
 
                 {/* Entries that Meet Filter Criteria */}
-                <View style={{flex: 1}}>
+                <View style={{backgroundColor: 'azure', flex: 1, borderBottomWidth: 1}}>
                   <FlatList 
                     data={filteredJournalEntries}
                     renderItem={({ item }) => {
@@ -445,18 +470,20 @@ const Index = () => {
                       var monthName = getMonthName(date.getMonth())
 
                       return (
-                        <View>
-                          <Text>{monthName} {date.getDate() + 1}, {date.getFullYear()}: {item.journalEntry}</Text>
+                        <View style={searchModalStyles.searchResultBoxes}>
+                          <Text style={{fontSize: 20, fontWeight: 600, textAlign: 'center', paddingBottom: 4}}>{monthName} {date.getDate() + 1}, {date.getFullYear()}:</Text>
+                          <Text>{item.journalEntry}</Text>
                         </View>
                       )
                     }}
-                    contentContainerStyle={{flex: 1}}
+                    contentContainerStyle={{flexGrow: 1, padding: 20, backgroundColor: 'azure'}}
+                    keyboardShouldPersistTaps={'always'}
                   />
                 </View>
               </KeyboardAvoidingView>
             </TouchableWithoutFeedback>
           </SafeAreaView>
-        </Modal>}
+        </Modal> }
     </>
   );
 }
@@ -571,7 +598,7 @@ const journalEntryModalStyles = StyleSheet.create({
 /* StyleSheet for Search Modal */
 const searchModalStyles = StyleSheet.create({
   container: {
-    backgroundColor: 'azure',
+    backgroundColor: 'white',
     flex: 1
   },
   backButton: {
@@ -583,7 +610,7 @@ const searchModalStyles = StyleSheet.create({
     flexDirection: 'row'
   },
   yearMonthDayBox: {
-    backgroundColor: 'azure',
+    backgroundColor: 'white',
     borderWidth: 2,
     borderRadius: 20,
     padding: 8,
@@ -596,7 +623,6 @@ const searchModalStyles = StyleSheet.create({
     marginBottom: 4
   },
   yearMonthDayInputText: {
-    backgroundColor: 'white',
     color: '#b1d8ff',
     textShadowColor: 'black',
     fontSize: 24,
@@ -609,7 +635,7 @@ const searchModalStyles = StyleSheet.create({
     marginBottom: 4
   },
   keywordBox: {
-    backgroundColor: 'azure',
+    backgroundColor: 'white',
     fontSize: 16,
     borderWidth: 0.5,
     borderRadius: 5,
@@ -622,6 +648,13 @@ const searchModalStyles = StyleSheet.create({
     marginTop: 4,
     paddingTop: 8,
     paddingBottom: 8
+  },
+  searchResultBoxes: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 8,
+    marginTop: 8
   }
 })
 
