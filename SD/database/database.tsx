@@ -26,7 +26,7 @@ export const setupDatabase = async () => {
         middayMood INTEGER,
         nighttimeMood INTEGER,
         journalEntry TEXT,
-        FOREIGN KEY (exName, exDate) REFERENCES Exercise (exerciseDate, exerciseName) ON UPDATE CASCADE ON DELETE CASCADE
+        FOREIGN KEY (exName, exDate) REFERENCES Exercise (exerciseName, exerciseDate) ON UPDATE CASCADE ON DELETE CASCADE
       );`
     )
     
@@ -41,14 +41,15 @@ export const setupDatabase = async () => {
       );`
     )
 
-    /* try {await db.execAsync(`DROP TABLE UserInfo;`)} catch (error) {console.log(error)} */
 
     // Determines whether or not the database contains the current date that the user is viewing the app (and adds it to the database if so)
     if((await db.getAllAsync(`SELECT date from UserInfo WHERE date = ?`, dateForToday)).length === 0) { addDate(dateForToday) }
 
     console.log('Database setup complete');
-    /* console.log(await db.getAllAsync(`SELECT date from UserInfo`)) */
-    console.log(await db.getAllAsync(`SELECT * from UserInfo where date = ?`, dateForToday))
+
+    /* console.log(await db.getAllAsync(`SELECT * from UserInfo where date = ?`, dateForToday)) */
+    /* console.log(await db.getAllAsync(`SELECT exName from UserInfo`)) */
+    /* console.log(await db.getAllAsync(`SELECT * from Exercise where exerciseDate = ?`, dateForToday)) */
 };
 
 
@@ -80,7 +81,6 @@ export const getEntry = async (date: string): Promise<string> => {
 
   if(count[0] !== undefined) {
     try {
-      console.log(await db.getAllAsync<{journalEntry: string}> ('SELECT journalEntry FROM UserInfo WHERE date = ? AND journalEntry IS NOT NULL;', [date]))
       return (await db.getAllAsync<{journalEntry: string}> ('SELECT journalEntry FROM UserInfo WHERE date = ? AND journalEntry IS NOT NULL;', [date]))[0].journalEntry
     }
     catch (error) {  }
@@ -92,8 +92,6 @@ export const getEntry = async (date: string): Promise<string> => {
 
 /* Adds/Updates the journal entry */
 export const updateJournalEntry = async (date: string, journalEntry: string): Promise<void> => {
-  console.log("DB JE DATE: " + date)
-  console.log("DB JE JE: " + journalEntry)
   await addDate(date)
   try { await db.runAsync(`UPDATE UserInfo SET journalEntry = ? WHERE date = ? AND exDate IS NULL;`, [journalEntry, date]) } 
   catch (error) { console.log(error) }
@@ -151,7 +149,6 @@ export const updateMood = async (moodVal: string, date: string, moodTimeOfDay: s
 /* Adds/Updates the sleep total */
 export const updateSleepTotal = async (sleepVal: string, date: string): Promise<void> => {
   await db.runAsync(`UPDATE UserInfo SET sleepTotal = ? WHERE date = ? AND exDate IS NULL;`, [sleepVal, date])
-  console.log("Sleep in Database (from function): "+ (await db.getAllAsync(`SELECT sleepTotal from UserInfo`)).length)
   console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
 }
 
@@ -202,5 +199,67 @@ export const getSleepTotal = async (date: string): Promise<{sleepTotal: number}[
   return await db.getAllAsync<{sleepTotal: number}> (`SELECT sleepTotal FROM UserInfo WHERE date = ? AND exDate IS NULL`, [date])
 }
 
+
+
+/* Gets all unique activity names that the user has entered */
+export const getUniqueActivities = async (): Promise<{exerciseName: string}[]> => {
+  return await db.getAllAsync<{exerciseName: string}> (`SELECT distinct exerciseName FROM Exercise`)
+}
+
+/* Gets the unit type of a specific activity */
+export const getUnitType = async (exerciseName: string) => {
+  var unitType = await db.getFirstAsync<{exerciseUnit: string}> ('SELECT exerciseUnit from Exercise WHERE exerciseName = ?', exerciseName)
+  return unitType
+}
+
+/* Gets the amount of the requested activity type for the current day */
+export const getActivityTypeAmnt = async (exerciseName: string, exerciseDate: string): Promise<number> => {
+  var amnt = await db.getFirstAsync<{exerciseAmnt: number}> ('SELECT exerciseAmnt from Exercise WHERE exerciseName = ? AND exerciseDate = ?', [exerciseName, exerciseDate])
+  if(amnt !== null) { return amnt.exerciseAmnt }
+  else { return 0 }
+}
+
+/* Adds a new custom activity to the Exercise table */
+export const addActivity = async (exerciseDate: string, exerciseName: string, exerciseUnit: string): Promise<void> => {
+  // Check if current activity name exists (and creates a new row of a default version of that activity if it does not)
+  if((await db.getAllAsync(`SELECT exerciseName from Exercise WHERE exerciseDate = ?`, exerciseDate)).length === 0) {
+    try {
+      await db.runAsync(`INSERT INTO Exercise (exerciseDate, exerciseName, exerciseAmnt, exerciseUnit) VALUES (?, ?, ?, ?);`, [exerciseDate, exerciseName, 0, exerciseUnit])
+      console.log("Added new activity of:" + exerciseName)
+    }
+    catch (error) { console.log(error) }
+  }
+  else {
+    console.log("That activity already exists")
+  }
+}
+
+export const updateActivity = async (exerciseDate: string, exerciseName: string, exerciseAmnt: number): Promise<void> => {
+  // Determines whether or not the activity already exists for the current date (and creates a new row in the tables for that activity/date if it does not)
+  if((await db.getAllAsync(`SELECT exerciseName from Exercise WHERE exerciseDate = ?`, exerciseDate)).length === 0) {
+    // Adds the activity and all of its attributes to the current date in the Exercise table
+    var unitName = (await getUnitType(exerciseName))
+    if(unitName !== null) { // If the unit type returns a string value, it is used as parameters for the activity
+      addActivity(exerciseDate, exerciseName, unitName.exerciseUnit)
+    }
+    else { // If the unit type does not return a string value, an empty string is used in place of the unit type
+      addActivity(exerciseDate, exerciseName, "")
+    }
+  }
+  else { // The activity for the current day already exists
+    await db.runAsync(`UPDATE Exercise SET exerciseAmnt = ? WHERE exerciseDate = ? AND exerciseName = ? IS NULL;`, [exerciseAmnt, exerciseDate, exerciseName])
+  }
+
+  // Adds the activity name/date as foreign keys to a new row in the UserInfo table
+  if((await db.getAllAsync(`SELECT date from UserInfo WHERE exDate = ? AND exName = ?`, [exerciseDate, exerciseName])).length === 0) {
+    try { await db.runAsync(`INSERT INTO UserInfo (date, exName, exDate) VALUES (?, ?, ?);`, [exerciseDate, exerciseName, exerciseDate]) } catch (error) { console.log(error) }
+  }
+
+  // Updates activity in Exercise table to include the exerciseAmnt that the user indicated
+  await db.runAsync(`UPDATE Exercise SET exerciseAmnt = ? WHERE exerciseDate = ? AND exerciseName = ?;`, [exerciseAmnt, exerciseDate, exerciseName])
+
+  console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
+  console.log(JSON.stringify(await db.getAllAsync(`SELECT * from Exercise WHERE exerciseDate = ? AND exerciseName = ?`, [dateForToday, exerciseName])))
+}
 
 export default () => db;
