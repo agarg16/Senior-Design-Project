@@ -8,10 +8,13 @@ import { addDate,
          getSnacks, updateWater, 
          getWater, updateMood,
          getMorningMood, getMiddayMood, getNighttimeMood,
-         getSleepTotal, updateSleepTotal
+         getSleepTotal, updateSleepTotal,
+         getUniqueActivities, addActivity, updateActivity, getUnitType, getActivityTypeAmnt
         } from '../database/database'
 
 const CheckIn = () => {
+  const [modalType, setModalType] = useState("update")
+  const [listOfActivityButtons, setListOfActivityButtons] = useState<string[]>([]) // Stores the distinct activity names that the user has entered
   const [updateTextWith, setUpdateTextWith] = useState("") // A way to update the text useStates
   const [textInputVal, setTextInputVal] = useState("") // A default value to display in the activity input text box
 
@@ -23,7 +26,6 @@ const CheckIn = () => {
   const [selectedActivityVal, setSelectedActivityVal] = useState(0)       // The numerical-based input of the activity being looked at (mood and sleep for example)
 
   const [curDate, setCurDate] = useState(new Date().toISOString().split("T")[0]) // The current date
-  //const [userAddedActivities, setUserAddedActivities] = useState([]) // List of all of the user's added activities
 
   // Adds the current date into the table (if it is not already there)
   const addDateIntoTable = async () => { await addDate(curDate) }
@@ -115,9 +117,59 @@ const CheckIn = () => {
     else { setSelectedActivityVal(0) }
   }
 
-  var textBox = ""
+  // Gets all previously entered custom activities
+  const getPrevActivities = async () => {
+    const activitiesFromDB = await getUniqueActivities()
+
+    var onlyActivities: string[] = []
+    for(var i = 0; i < activitiesFromDB.length; i++) {
+      if(i === 0) {
+        onlyActivities[0] = activitiesFromDB[0].exerciseName
+      }
+      else {
+        onlyActivities = [...onlyActivities, activitiesFromDB[i].exerciseName]
+      }
+    }
+
+    setListOfActivityButtons(onlyActivities)
+  }
+
+  var textBox1 = ""
+  var textBox2 = ""
   const [finalTextBoxContent, setFinalTextBoxContent] = useState("") // Allows the selectedActivityText to be updated immediately upon change in numerical input from text input
   const [defaultMood, setDefaultMood] = useState(String(selectedActivityVal)) // Allows the selectedActivityText to be updated immediately upon change in mood selection
+
+  // Gets the unit of the current activity and finds the current amount of the activity unit for the current day
+  const getUnit = async (activityName: string) => {
+    var unit = await getUnitType(activityName)
+    if(unit !== null) {
+      setSelectedActivityUnit(unit.exerciseUnit)
+    }
+    else {
+      setSelectedActivityUnit("")
+    }
+
+    // Gets the current amount being stored in the database
+    var amnt = await getActivityTypeAmnt(activityName, curDate)
+    console.log(amnt)
+    setTextInputVal(amnt.toString())
+  }
+
+  const addActivityButton = (activityName:string, activityUnit: string) => {
+    if(listOfActivityButtons.find(name => name === activityName) !== null) {
+      setListOfActivityButtons([...listOfActivityButtons, activityName])
+      addActivity(curDate, activityName, activityUnit)
+    }
+    else {
+      return (
+        <Text style={{backgroundColor: 'yellow'}}>That activity has already been created</Text>
+      )
+    }
+  }
+
+  /* Updates the current custom activity to have the user-submitted amount */
+  const updateActivityButton = async (activityName: string, activityAmnt: number) => { await updateActivity(curDate, activityName, activityAmnt) }
+
   /* The type of view that displays when the user selects an activity */
   type ViewType = { name: string }
   const ActivityView = (props: ViewType) => {
@@ -188,7 +240,7 @@ const CheckIn = () => {
       return (
         /* Input Text Box */
         <TextInput style={modalStyles.inputBox} 
-        onChangeText={ newText => { textBox = newText } }
+        onChangeText={ newText => { textBox1 = newText } }
         multiline
         keyboardType={keyboardTypeName == "default" ? 'default' : 'decimal-pad'}
         defaultValue={textInputVal}
@@ -197,10 +249,105 @@ const CheckIn = () => {
     }
   }
 
-  useEffect(() => { addDateIntoTable() }, []) // Creates a new date for the current date (if it doesn't already exist)
+  /* Determines what modal type is needed (an updating of the current day's activities or creating a new activity) */
+  const [activityName, setActivityName] = useState("") // Stores the user's chosen activity name
+  const [updateActivityName, setUpdateActivityName] = useState("")
+  const [activityUnit, setActivityUnit] = useState("") // Stores the user's chosen activity unit
+  const [updateActivityUnit, setUpdateActivityUnit] = useState("")
+
+  type ModalType = { type: string }
+  const ModalTypeToUse = (props: ModalType) => {
+    if(props.type == "update") {
+      /* Selected Activity's Name and Unit */
+      return (
+        <View>
+            {/* Selected Activity's Unit */}
+            <Text style={{fontSize: 48, padding: 20, alignSelf: 'center'}}>{selectedActivity}</Text>
+            <View style={modalStyles.boxStyling}>
+              <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                {/* Selected Activity's Unit */}
+                <Text style={modalStyles.unitsLabel}>{selectedActivityUnit}:</Text>
+                
+                {/* Save Button */}
+                <TouchableOpacity style={modalStyles.saveButton} onPress={() => {
+                  if(selectedActivity == "Water")            { setFinalTextBoxContent(textBox1) }
+                  else if(selectedActivity.includes("Mood")) { updateMoodVal(selectedActivity) }
+                  else if(selectedActivity == "Sleep Total") { setFinalTextBoxContent(textBox1) }
+                  else if(selectedActivityUnit == "Meal")    { updateMeal(selectedActivity) }                 /* STILL NEEDS TO BE UPDATED TO USE NUMERICAL VALUES SINCE WE CHANGED THE DATABASE */
+                  else { // Selected activity is custom
+                    console.log("CURRENT CUSTOM SELECTED ACTIVITY: " + selectedActivity)
+                    updateActivityButton(selectedActivity, Number(textBox1))
+                  }
+                  /* else if(selectedActivity == "addCustom")   { addActivityButton() } */ /* Adding custom activities */
+                  /* else { updateCustomActivity() }  Updating custom activities  */
+                }}>
+                  <Text style={modalStyles.saveButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Displays different layout on modal depending on whether or not a mood button was selected */}
+              <ActivityView name={selectedActivity} />
+            </View>
+          </View>
+      )
+    }
+    else { // (props.type == "create")
+      /* Creating an Activity */
+      return (
+        <View>
+          <Text style={{fontSize: 48, padding: 20, alignSelf: 'center'}}>New Activity</Text>
+          <View style={modalStyles.boxStyling}>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+              {/* Where the user enters an activity name */}
+              <Text style={modalStyles.unitsLabel}>Name:</Text>
+
+              {/* Save Button */}
+              <TouchableOpacity style={modalStyles.saveButton} onPress={() => {
+                /* setFinalTextBoxContent(textBox) */
+                /* setUpdateActivityName(updateActivityName => textBox1) */
+                
+                console.log(textBox1)
+                console.log(textBox2)
+                addActivityButton(textBox1, textBox2)
+              }}>
+                <Text style={modalStyles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Input Text Box */}
+            <TextInput style={modalStyles.inputBox} 
+            onChangeText={ newText => { textBox1 = newText } }
+            multiline
+            keyboardType={keyboardTypeName == "default" ? 'default' : 'decimal-pad'}
+            defaultValue={textInputVal} />
+            
+            <View style={{marginTop: 16, flexDirection: 'row', justifyContent: 'space-between'}}>
+              {/* Where the user enters an activity name */}
+              <Text style={modalStyles.unitsLabel}>Unit:</Text>
+            </View>
+
+            {/* Input Text Box */}
+            <TextInput style={modalStyles.inputBox} 
+            onChangeText={ newText => { textBox2 = newText } }
+            multiline
+            keyboardType={keyboardTypeName == "default" ? 'default' : 'decimal-pad'}
+            defaultValue={textInputVal} />
+          </View>
+        </View>
+      )
+    }
+  }
+
+  useEffect(() => { // Creates a new date for the current date (if it doesn't already exist) and gathers all previously entered custom activities
+    addDateIntoTable()
+    getPrevActivities()
+  }, [])
   useEffect(() => { setTextInputVal(selectedActivityText) }, [selectedActivityText]) // Updates the default value in the text input to be a non-numerical value
   useEffect(() => { setTextInputVal(String(selectedActivityVal)) }, [selectedActivityVal]) // Updates the default value in the text input to be a numerical value (converted to string form)
-  useEffect(() => { setSelectedActivity(updateTextWith) }, [updateTextWith]) // Updates the selected activity (so it is accurate with what the user selected immediately)
+  useEffect(() => {
+    var activity = updateTextWith
+    setSelectedActivity(activity)
+  }, [updateTextWith]) // Updates the selected activity (so it is accurate with what the user selected immediately)
   useEffect(() => { // Finds the value of the currently selected activity based on the most accurate version of the selected activity
     if(selectedActivity.includes("Mood")) { getMoodValue(selectedActivity) } // Mood
     else if(selectedActivity == "Water") { getWaterValue() }                 // Water
@@ -216,7 +363,11 @@ const CheckIn = () => {
     else if(selectedActivity == "Sleep Total") {
       updateSleepValue()
     }
+    else {
+      console.log("selected activity: " + selectedActivity)
+    }
   }, [selectedActivityText])
+  
 
 
   /* Main Check-In Return */
@@ -244,6 +395,7 @@ const CheckIn = () => {
                 <View style={{flexDirection: 'row', marginBottom: 8, marginRight: 4, justifyContent: 'center'}}>
                   {/* Breakfast Button */}
                   <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setModalType("update")}
                     {setActivityModalVisible(true)}
                     {setSelectedActivity("Breakfast")}
                     {setSelectedActivityUnit("Meal")}
@@ -256,6 +408,7 @@ const CheckIn = () => {
 
                   {/* Lunch Button */}
                   <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setModalType("update")}
                     {setActivityModalVisible(true)}
                     {setSelectedActivity("Lunch")}
                     {setSelectedActivityUnit("Meal")}
@@ -268,6 +421,7 @@ const CheckIn = () => {
 
                   {/* Dinner Button */}
                   <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setModalType("update")}
                     {setActivityModalVisible(true)}
                     {setSelectedActivity("Dinner")}
                     {setSelectedActivityUnit("Meal")}
@@ -281,6 +435,7 @@ const CheckIn = () => {
                 <View style={{flexDirection: 'row', marginBottom: 4, marginRight: 4, justifyContent: 'center'}}>
                   {/* Snacks Button */}
                   <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setModalType("update")}
                     {setActivityModalVisible(true)}
                     {setSelectedActivity("Snacks")}
                     {setSelectedActivityUnit("Meal")}
@@ -293,6 +448,7 @@ const CheckIn = () => {
 
                   {/* Water Button */}
                   <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setModalType("update")}
                     {setActivityModalVisible(true)}
                     {setUpdateTextWith("Water")}
                     {setSelectedActivityUnit("Ounces")}
@@ -307,6 +463,7 @@ const CheckIn = () => {
                 <Text style={{fontSize: 22, padding: 8, textAlign: 'center'}}>Moods & Sleep</Text>
                 <View style={{flexDirection: 'row', marginBottom: 8, marginRight: 4, justifyContent: 'space-around'}}>
                   <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setModalType("update")}
                     {setActivityModalVisible(true)}
                     {setSelectedActivityUnit("12 AM-8 AM")}
                     {setUpdateTextWith("Morning Mood")}
@@ -315,6 +472,7 @@ const CheckIn = () => {
                     <Text style={styles.textInActivityBox}>Morning Mood</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setModalType("update")}
                     {setActivityModalVisible(true)}
                     {setSelectedActivityUnit("9 AM-4 PM")}
                     {setUpdateTextWith("Midday Mood")}
@@ -323,6 +481,7 @@ const CheckIn = () => {
                     <Text style={styles.textInActivityBox}>Midday Mood</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.defaultActivities} onPress={() => {
+                    {setModalType("update")}
                     {setActivityModalVisible(true)}
                     {setSelectedActivityUnit("5 PM-11 PM")}
                     {setUpdateTextWith("Night Mood")}
@@ -333,7 +492,7 @@ const CheckIn = () => {
                 </View>
                 <View style={{flexDirection: 'row', marginBottom: 4, marginRight: 4, justifyContent: 'center'}}>
                   <TouchableOpacity style={[styles.defaultActivities, {alignSelf: 'center'}]} onPress={() => {
-                    {console.log("well...you pressed the sleep one")}
+                    {setModalType("update")}
                     {setActivityModalVisible(true)}
                     {setUpdateTextWith("Sleep Total")}
                     {setSelectedActivityUnit("Hours")}
@@ -345,10 +504,34 @@ const CheckIn = () => {
                 </View>
 
                 {/* Extra Activities Category */}
-                <Text style={{fontSize: 22, padding: 10, textAlign: 'center'}}>Extra Activities</Text>
+                <Text style={{fontSize: 22, paddingTop: 10, textAlign: 'center'}}>Extra Activities</Text>
+                <View style={{alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap'}}>
+                  <FlatList
+                  data={listOfActivityButtons}
+                  renderItem={({item}) => {
+                    return (
+                      <TouchableOpacity style={[styles.defaultActivities, {marginBottom: 16}]} onPress={() => {
+                        setModalType("update")
+                        setActivityModalVisible(true)
+                        setUpdateTextWith(item)
+                        getUnit(item)
+                        setKeyboardTypeName("decimal-pad")
+                      }}>
+                        <Text numberOfLines = {1} style={styles.textInActivityBox}>{item}</Text>
+                      </TouchableOpacity>
+                    )
+                  }}
+                  />
+                </View>
                 <View style={{height: 48, width: 96, alignSelf: 'center'}}>
                   {/* Plus Button */}
-                  <TouchableOpacity style={modalStyles.addButton}>
+                  <TouchableOpacity style={modalStyles.addButton} onPress={() => { 
+                    setUpdateTextWith("addCustom")
+                    setModalType("create")
+                    setActivityModalVisible(true)
+                    setKeyboardTypeName("default")
+                    setTextInputVal("")
+                  }}>
                     <Ionicons name="add-circle-outline" color={'#629AAC'} size={48} />
                   </TouchableOpacity>
                 </View>
@@ -369,30 +552,7 @@ const CheckIn = () => {
               <Text style={{color: '#18576D', fontSize: 16}}>Back</Text>
             </TouchableOpacity>
 
-            {/* Selected Activity's Name and Unit*/}
-            <View>
-              {/* Selected Activity's Unit */}
-              <Text style={{fontSize: 48, padding: 20, alignSelf: 'center'}}>{selectedActivity}</Text>
-              <View style={modalStyles.boxStyling}>
-                <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                  {/* Selected Activity's Unit */}
-                  <Text style={modalStyles.unitsLabel}>{selectedActivityUnit}:</Text>
-                  
-                  {/* Save Button */}
-                  <TouchableOpacity style={modalStyles.saveButton} onPress={() => {
-                    if(selectedActivity == "Water")            { setFinalTextBoxContent(textBox) }
-                    else if(selectedActivity.includes("Mood")) { console.log("USING SAVE BUTTON: " + selectedActivityText); updateMoodVal(selectedActivity) }
-                    else if(selectedActivity == "Sleep Total") { setFinalTextBoxContent(textBox) }
-                    else { updateMeal(selectedActivity) }
-                  }}>
-                    <Text style={modalStyles.saveButtonText}>Save</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Displays different layout on modal depending on whether or not a mood button was selected */}
-                <ActivityView name={selectedActivity} />
-              </View>
-            </View>
+            <ModalTypeToUse type={modalType} />
           </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
       </SafeAreaView>
