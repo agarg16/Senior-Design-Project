@@ -207,59 +207,140 @@ export const getUniqueActivities = async (): Promise<{exerciseName: string}[]> =
 }
 
 /* Gets the unit type of a specific activity */
-export const getUnitType = async (exerciseName: string) => {
-  var unitType = await db.getFirstAsync<{exerciseUnit: string}> ('SELECT exerciseUnit from Exercise WHERE exerciseName = ?', exerciseName)
-  return unitType
-}
+// export const getUnitType = async (exerciseName: string) => {
+//   var unitType = await db.getFirstAsync<{exerciseUnit: string}> ('SELECT exerciseUnit from Exercise WHERE exerciseName = ?', exerciseName)
+//   return unitType
+// }
+
+export const getUnitType = async (
+  exerciseName: string,
+  date: string
+): Promise<{ exerciseUnit: string } | null> => {
+  try {
+    return await db.getFirstAsync<{ exerciseUnit: string }>(
+      `SELECT exerciseUnit FROM Exercise 
+       WHERE exerciseName = ? AND exerciseDate = ?`,
+      [exerciseName, date]
+    );
+  } catch (error) {
+    console.error('Error fetching unit type:', error);
+    return null;
+  }
+};
 
 /* Gets the amount of the requested activity type for the current day */
-export const getActivityTypeAmnt = async (exerciseName: string, exerciseDate: string): Promise<number> => {
-  var amnt = await db.getFirstAsync<{exerciseAmnt: number}> ('SELECT exerciseAmnt from Exercise WHERE exerciseName = ? AND exerciseDate = ?', [exerciseName, exerciseDate])
-  if(amnt !== null) { return amnt.exerciseAmnt }
-  else { return 0 }
-}
+export const getActivityTypeAmnt = async (
+  exerciseName: string,
+  exerciseDate: string
+): Promise<number> => {
+  try {
+    const result = await db.getFirstAsync<{ exerciseAmnt: number }>(
+      `SELECT exerciseAmnt FROM Exercise 
+       WHERE exerciseName = ? AND exerciseDate = ?`,
+      [exerciseName, exerciseDate]
+    );
+    return result?.exerciseAmnt ?? 0;
+  } catch (error) {
+    console.error('Error fetching activity amount:', error);
+    return 0;
+  }
+};
 
 /* Adds a new custom activity to the Exercise table */
+// export const addActivity = async (exerciseDate: string, exerciseName: string, exerciseUnit: string): Promise<void> => {
+//   // Check if current activity name exists (and creates a new row of a default version of that activity if it does not)
+//   if((await db.getAllAsync(`SELECT exerciseName from Exercise WHERE exerciseDate = ?`, exerciseDate)).length === 0) {
+//     try {
+//       await db.runAsync(`INSERT INTO Exercise (exerciseDate, exerciseName, exerciseAmnt, exerciseUnit) VALUES (?, ?, ?, ?);`, [exerciseDate, exerciseName, 0, exerciseUnit])
+//       console.log("Added new activity of:" + exerciseName)
+//     }
+//     catch (error) { console.log(error) }
+//   }
+//   else {
+//     console.log("That activity already exists")
+//   }
+// }
+
 export const addActivity = async (exerciseDate: string, exerciseName: string, exerciseUnit: string): Promise<void> => {
-  // Check if current activity name exists (and creates a new row of a default version of that activity if it does not)
-  if((await db.getAllAsync(`SELECT exerciseName from Exercise WHERE exerciseDate = ?`, exerciseDate)).length === 0) {
-    try {
-      await db.runAsync(`INSERT INTO Exercise (exerciseDate, exerciseName, exerciseAmnt, exerciseUnit) VALUES (?, ?, ?, ?);`, [exerciseDate, exerciseName, 0, exerciseUnit])
-      console.log("Added new activity of:" + exerciseName)
-    }
-    catch (error) { console.log(error) }
+  try {
+    // Use UPSERT to handle existing entries
+    await db.runAsync(
+      `INSERT INTO Exercise (exerciseDate, exerciseName, exerciseAmnt, exerciseUnit)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(exerciseDate, exerciseName) 
+       DO UPDATE SET exerciseUnit = excluded.exerciseUnit;`,
+      [exerciseDate, exerciseName, 0, exerciseUnit]
+    );
+    
+    // Add reference to UserInfo
+    await db.runAsync(
+      `INSERT OR IGNORE INTO UserInfo (date, exName, exDate)
+       VALUES (?, ?, ?);`,
+      [exerciseDate, exerciseName, exerciseDate]
+    );
+    
+    console.log('Activity added:', exerciseName);
+  } catch (error) {
+    console.error('Error adding activity:', error);
+    throw error;
   }
-  else {
-    console.log("That activity already exists")
-  }
-}
+};
+
+// export const updateActivity = async (exerciseDate: string, exerciseName: string, exerciseAmnt: number): Promise<void> => {
+//   // Determines whether or not the activity already exists for the current date (and creates a new row in the tables for that activity/date if it does not)
+//   if((await db.getAllAsync(`SELECT exerciseName from Exercise WHERE exerciseDate = ?`, exerciseDate)).length === 0) {
+//     // Adds the activity and all of its attributes to the current date in the Exercise table
+//     var unitName = (await getUnitType(exerciseName))
+//     if(unitName !== null) { // If the unit type returns a string value, it is used as parameters for the activity
+//       addActivity(exerciseDate, exerciseName, unitName.exerciseUnit)
+//     }
+//     else { // If the unit type does not return a string value, an empty string is used in place of the unit type
+//       addActivity(exerciseDate, exerciseName, "")
+//     }
+//   }
+//   else { // The activity for the current day already exists
+//     await db.runAsync(`UPDATE Exercise SET exerciseAmnt = ? WHERE exerciseDate = ? AND exerciseName = ? IS NULL;`, [exerciseAmnt, exerciseDate, exerciseName])
+//   }
+
+//   // Adds the activity name/date as foreign keys to a new row in the UserInfo table
+//   if((await db.getAllAsync(`SELECT date from UserInfo WHERE exDate = ? AND exName = ?`, [exerciseDate, exerciseName])).length === 0) {
+//     try { await db.runAsync(`INSERT INTO UserInfo (date, exName, exDate) VALUES (?, ?, ?);`, [exerciseDate, exerciseName, exerciseDate]) } catch (error) { console.log(error) }
+//   }
+
+//   // Updates activity in Exercise table to include the exerciseAmnt that the user indicated
+//   await db.runAsync(`UPDATE Exercise SET exerciseAmnt = ? WHERE exerciseDate = ? AND exerciseName = ?;`, [exerciseAmnt, exerciseDate, exerciseName])
+
+//   console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
+//   console.log(JSON.stringify(await db.getAllAsync(`SELECT * from Exercise WHERE exerciseDate = ? AND exerciseName = ?`, [dateForToday, exerciseName])))
+// }
 
 export const updateActivity = async (exerciseDate: string, exerciseName: string, exerciseAmnt: number): Promise<void> => {
-  // Determines whether or not the activity already exists for the current date (and creates a new row in the tables for that activity/date if it does not)
-  if((await db.getAllAsync(`SELECT exerciseName from Exercise WHERE exerciseDate = ?`, exerciseDate)).length === 0) {
-    // Adds the activity and all of its attributes to the current date in the Exercise table
-    var unitName = (await getUnitType(exerciseName))
-    if(unitName !== null) { // If the unit type returns a string value, it is used as parameters for the activity
-      addActivity(exerciseDate, exerciseName, unitName.exerciseUnit)
-    }
-    else { // If the unit type does not return a string value, an empty string is used in place of the unit type
-      addActivity(exerciseDate, exerciseName, "")
-    }
-  }
-  else { // The activity for the current day already exists
-    await db.runAsync(`UPDATE Exercise SET exerciseAmnt = ? WHERE exerciseDate = ? AND exerciseName = ? IS NULL;`, [exerciseAmnt, exerciseDate, exerciseName])
-  }
+  try {
+    const unit = await db.getFirstAsync<{exerciseUnit: string}>(
+      `SELECT exerciseUnit FROM Exercise 
+       WHERE exerciseDate = ? AND exerciseName = ?`,
+      [exerciseDate, exerciseName]
+    );
 
-  // Adds the activity name/date as foreign keys to a new row in the UserInfo table
-  if((await db.getAllAsync(`SELECT date from UserInfo WHERE exDate = ? AND exName = ?`, [exerciseDate, exerciseName])).length === 0) {
-    try { await db.runAsync(`INSERT INTO UserInfo (date, exName, exDate) VALUES (?, ?, ?);`, [exerciseDate, exerciseName, exerciseDate]) } catch (error) { console.log(error) }
+    // Use null coalescing operator to handle undefined
+    await db.runAsync(
+      `UPDATE Exercise SET 
+       exerciseAmnt = ?,
+       exerciseUnit = COALESCE(?, exerciseUnit)
+       WHERE exerciseDate = ? AND exerciseName = ?;`,
+      [
+        exerciseAmnt,
+        unit?.exerciseUnit ?? null,  // Convert undefined to null
+        exerciseDate,
+        exerciseName
+      ]
+    );
+
+    console.log('Activity updated:', exerciseName);
+  } catch (error) {
+    console.error('Error updating activity:', error);
+    throw error;
   }
-
-  // Updates activity in Exercise table to include the exerciseAmnt that the user indicated
-  await db.runAsync(`UPDATE Exercise SET exerciseAmnt = ? WHERE exerciseDate = ? AND exerciseName = ?;`, [exerciseAmnt, exerciseDate, exerciseName])
-
-  console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
-  console.log(JSON.stringify(await db.getAllAsync(`SELECT * from Exercise WHERE exerciseDate = ? AND exerciseName = ?`, [dateForToday, exerciseName])))
-}
+};
 
 export default () => db;
