@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, SafeAreaView, Dimensions, Platform, TouchableOpacity, Image, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Modal, FlatList } from "react-native";
+import { Text, View, SafeAreaView, Platform, TouchableOpacity, Image, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Modal } from "react-native";
 import { getMonthName } from '../additionalFiles/getMonthName.js';
 import { getEntry } from '../database/database';
 import { Ionicons } from '@expo/vector-icons';
@@ -78,9 +78,19 @@ const Index = () => {
                   <Image style={styles.arrowButtonsImgs} source={require('../assets/images/leftArrow.png')} />
                 </TouchableOpacity>
           
-                <Text style={{ fontSize: 38, textAlign: 'center', width: 280 }}>
-                  {getMonthName(curDate.getMonth())} {curDate.getFullYear()}
-                </Text>
+                <TouchableWithoutFeedback onPress={() => {
+                  const today = new Date();
+                  curDate.setFullYear(today.getFullYear(), today.getMonth(), today.getDate());
+                  setCurDay(today.getDate());
+                  setCurMonth(today.getMonth());
+                  setCurYear(today.getFullYear());
+                  setCurStartingDayOfWeek(new Date(curDate.getFullYear(), curDate.getMonth(), 1).getDay());
+                  setNumDaysInCurMonth(new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate());
+                }}>
+                  <Text style={{ fontSize: 38, textAlign: 'center', width: 280 }}>
+                    {getMonthName(curDate.getMonth())} {curDate.getFullYear()}
+                  </Text>
+                </TouchableWithoutFeedback>
           
                 <TouchableOpacity style={styles.arrowButtonsLocation} onPress={() => {
                   curDate.setMonth(curDate.getMonth() + 1);
