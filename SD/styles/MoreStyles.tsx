@@ -29,7 +29,7 @@ export const styles = StyleSheet.create({
       borderWidth: 2,
       borderRadius: 20,
       width: width <= height ? boxSize * 2.2 : boxSize * 0.5,
-      height: width <= height ? boxSize * 0.8 : boxSize,
+      height: width <= height ? boxSize * 0.65 : boxSize,
       margin: (boxSize * 0.13),
       justifyContent: 'center'
     },
