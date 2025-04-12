@@ -5,7 +5,7 @@ import { modalStyles } from '../../styles/CheckInStyles';
 import { updateFood, updateSleepTotal, updateWater, updateActivity } from '../../database/database';
 
 interface UpdateModalProps {
-  curDate: string;
+  curDate: Date;
   selectedActivityName: string;
   selectedActivityUnit: string;
   selectedActivityText: string;
@@ -27,16 +27,18 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
   /* Ensures moodVal is updated immediately upon trying to save */
   const saveToDB = async () => {
     if(selectedActivityName === "Water") {
-      await updateWater(updatedInputText, curDate)
+      console.log(curDate.toISOString().split("T")[0])
+      await updateWater(updatedInputText, curDate.toISOString().split("T")[0])
     }
     else if(selectedActivityName === "Sleep Total") {
-      await updateSleepTotal(updatedInputText, curDate)
+      await updateSleepTotal(updatedInputText, curDate.toISOString().split("T")[0])
     }
     else if(["Breakfast", "Lunch", "Dinner", "Snacks"].includes(selectedActivityName)) {
-      await updateFood(updatedInputText, curDate, selectedActivityName)
+      await updateFood(updatedInputText, curDate.toISOString().split("T")[0], selectedActivityName)
     }
     else { // Custom Activity
-      await updateActivity(curDate, selectedActivityName, Number(updatedInputText))
+      var text = Number(updatedInputText)
+      await updateActivity(curDate.toISOString().split("T")[0], selectedActivityName, text)
     }
   }
 
