@@ -6,7 +6,8 @@ import { Ionicons } from '@expo/vector-icons'
 const DATA = [
   { title: 'Self-Assessment' },
   { title: 'Graphs' },
-  { title: 'Learn More' }
+  { title: 'Learn More' },
+  { title: 'Licenses' }
 ]
 
 const More = () => {
@@ -55,7 +56,10 @@ const More = () => {
                     <Text style={{ color: '#18576D', fontSize: 16 }}>Back</Text>
                   </TouchableOpacity>
 
+                  {/* Modal Type Title */}
                   <Text style={{fontSize: 32, textAlign: 'center', paddingBottom: 32}}>{modalType}</Text>
+
+
               </SafeAreaView>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>
