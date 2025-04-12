@@ -4,7 +4,7 @@ import { modalStyles } from '../../styles/CheckInStyles';
 import { updateMood } from '../../database/database';
 
 interface MoodGridProps {
-  curDate: string;
+  curDate: Date;
   selectedActivityName: string;
   selectedActivityUnit: string;
   selectedActivityText: string;
@@ -54,7 +54,7 @@ export const MoodGrid: React.FC<MoodGridProps> = ({
   }
 
   /* Ensures moodVal is updated immediately upon trying to save */
-  const saveToDB = async () => { await updateMood(moodVal, curDate, selectedActivityName); }
+  const saveToDB = async () => { await updateMood(moodVal, curDate.toISOString().split("T")[0], selectedActivityName); }
 
   /* Allows for the current mood displayed to be re-rendered without re-rendering the other images on the screen */
   const MoodDisplayed = () => {
