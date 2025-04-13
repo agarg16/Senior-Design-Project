@@ -363,7 +363,7 @@ const CheckIn = () => {
 
               {/* Extra Activities Section */}
               <View style={{flex: 1}}>
-                <Text style={{ fontSize: 22, paddingTop: 10, textAlign: 'center' }}>Extra Activities</Text>
+                <Text style={{ fontSize: 22, padding: 8, textAlign: 'center' }}>Extra Activities</Text>
                 <View style={{ alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap' }}>
                   <FlatList
                     data={listOfActivityButtons}
