@@ -53,4 +53,13 @@ export const modalStyles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
   },
+  licenseContainer: {
+    backgroundColor: 'lightblue',
+    borderBottomWidth: 1,
+    height: '70%'
+  },
+  licenseText: {
+    padding: 8,
+    fontSize: 16
+  }
 });
