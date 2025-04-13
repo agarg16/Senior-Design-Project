@@ -22,12 +22,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
 
   useEffect(() => {
     setInputValue(selectedActivityText);
+    setUpdatedInputText(selectedActivityText)
   }, [selectedActivityText]);
 
   /* Ensures moodVal is updated immediately upon trying to save */
   const saveToDB = async () => {
     if(selectedActivityName === "Water") {
-      console.log(curDate.toISOString().split("T")[0])
       await updateWater(updatedInputText, curDate.toISOString().split("T")[0])
     }
     else if(selectedActivityName === "Sleep Total") {
@@ -46,6 +46,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
     <View>
       {/* Selected Activity */}
       <Text style={{fontSize: 48, padding: 20, alignSelf: 'center'}}>{selectedActivityName}</Text>
+      
       <View style={modalStyles.boxStyling}>
         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
           {/* Selected Activity's Unit */}
@@ -62,13 +63,30 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
             <Text style={modalStyles.saveButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
-        <TextInput
+        {["Breakfast", "Lunch", "Dinner", "Snacks"].includes(selectedActivityName)
+        ?
+          <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+            <TouchableOpacity style={{backgroundColor: (updatedInputText === "1") ? '#18576D' : 'white', borderWidth: 1, borderRadius: 10, width: 100, height: 100, marginRight: 16, justifyContent: 'center'}} onPress={() => {
+              setUpdatedInputText("1")
+            }}>
+              <Text style={{textAlign: 'center', color: (updatedInputText === "1") ? 'white' : 'black', fontSize: 20}}>Ate</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={{backgroundColor: (updatedInputText !== "1") ? '#18576D' : 'white', borderWidth: 1, borderRadius: 10, width: 100, height: 100, marginLeft: 16, justifyContent: 'center'}} onPress={() => {
+              setUpdatedInputText("0")
+            }}>
+              <Text style={{textAlign: 'center', color: (updatedInputText !== "1") ? 'white' : 'black', fontSize: 20}}>Did Not Eat</Text>
+            </TouchableOpacity>
+          </View>
+        :
+          <TextInput
           style={modalStyles.inputBox}
           defaultValue={inputValue}
           onChangeText={setUpdatedInputText}
           multiline
           keyboardType={'decimal-pad'}
-        />
+          />
+        }
       </View>
     </View>
   );
