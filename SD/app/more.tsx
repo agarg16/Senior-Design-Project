@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
-import { Text, View, SafeAreaView, FlatList, TouchableOpacity, Modal, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from "react-native"
-import { styles, modalStyles } from '../styles/MoreStyles'
-import { Ionicons } from '@expo/vector-icons'
+import React, { useState } from 'react'
+import { Text, View, SafeAreaView, FlatList, TouchableOpacity } from "react-native"
+import { styles } from '../styles/MoreStyles'
+import { ModalUsed } from '../components/MoreComponents/MoreModal'
 
 const DATA = [
   { title: 'Self-Assessment' },
@@ -13,6 +13,7 @@ const DATA = [
 const More = () => {
   const [viewModalVisible, setViewModalVisible] = useState(false)
   const [modalType, setModalType] = useState("")
+  const [updateType, setUpdateType] = useState(false) /* Provides the user with the ability to re-open the most recently closed module (upon updating this value) */
 
   type ItemProps = {title: string}
   const Item = ({title}: ItemProps) => {
@@ -20,10 +21,22 @@ const More = () => {
       <TouchableOpacity style={styles.infoItemBox} onPress={() => {
         setViewModalVisible(true)
         setModalType(title)
+        setUpdateType(!updateType)
       }}>
         <Text style={styles.infoItemText}>{title}</Text>
+        <Modals />
       </TouchableOpacity>
   )}
+
+
+  /* Ensures the user can interact with the different buttons more than once */
+  const Modals = () => {
+    return (
+      <View>
+        {ModalUsed(modalType, viewModalVisible)}
+      </View>
+    )
+  }
 
   return (
     <>
@@ -33,37 +46,17 @@ const More = () => {
         </View>
         
         <View style={styles.moreInfoSection}>
-        {/* Displays the boxes of info */}
-        <FlatList
-          data={DATA}
-          renderItem={({item}) => <Item title={item.title} />}
-          scrollEnabled={false}
-          numColumns={1}
-          
-          contentContainerStyle={styles.moreInfoSection}
-        />
+          {/* Displays the Extra Information's boxes of info */}
+          <FlatList
+            data={DATA}
+            renderItem={({item}) => <Item title={item.title} />}
+            scrollEnabled={false}
+            numColumns={1}
+            
+            contentContainerStyle={styles.moreInfoSection}
+          />
         </View>
-      </SafeAreaView>
-
-      {/* Modals */}
-        <Modal visible={viewModalVisible} onRequestClose={() => setViewModalVisible(false)} animationType='slide' presentationStyle='pageSheet'>
-          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? "padding" : undefined} style={{ backgroundColor: 'white', flex: 1 }}>
-              <SafeAreaView style={modalStyles.container}>
-                  {/* Back Button */}
-                  <TouchableOpacity style={modalStyles.backButton} onPress={() => setViewModalVisible(false)}>
-                    <Ionicons name="chevron-back" color={'#18576D'} size={20} />
-                    <Text style={{ color: '#18576D', fontSize: 16 }}>Back</Text>
-                  </TouchableOpacity>
-
-                  {/* Modal Type Title */}
-                  <Text style={{fontSize: 32, textAlign: 'center', paddingBottom: 32}}>{modalType}</Text>
-
-
-              </SafeAreaView>
-            </KeyboardAvoidingView>
-          </TouchableWithoutFeedback>
-        </Modal>
+      </SafeAreaView>      
     </>
   )
 }
