@@ -3,7 +3,7 @@ import { Text, View, SafeAreaView, Platform, TouchableOpacity, Image, TouchableW
 import { getMonthName } from '../additionalFiles/getMonthName.js';
 import { getEntry } from '../database/database';
 import { Ionicons } from '@expo/vector-icons';
-import { styles, } from '../styles/IndexStyles';
+import { styles } from '../styles/IndexStyles';
 import CalendarGrid from '../components/IndexComponents/CalendarGrid';
 import JournalEntryModal from '../components/IndexComponents/JournalEntryModal';
 import SearchModal from '../components/IndexComponents/SearchModal';
