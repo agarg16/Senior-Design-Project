@@ -6,6 +6,15 @@ export const styles = StyleSheet.create({
     backgroundColor: 'white',
     flex: 1
   },
+  arrowButtonsLocation: {
+    height: 80,
+    width: '20%',
+    justifyContent: 'center',
+  },
+  arrowButtonsImgs: {
+    width: 24,
+    height: 24,
+  },
   question: {
     backgroundColor: 'white',
     fontSize: 36,
