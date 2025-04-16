@@ -222,6 +222,24 @@ export let Licenses = [
         licenseType: "Apache License",
         licenseCopyright: "",
         licenseURL: "https://github.com/microsoft/TypeScript/blob/main/LICENSE.txt"
+    },
+    {
+        packageName: "react-native-svg",
+        licenseType: "The MIT License (MIT)",
+        licenseCopyright: "Copyright (c) [2015-2016] [Horcrux]",
+        licenseURL: "https://github.com/software-mansion/react-native-svg/blob/main/LICENSE"
+    },
+    {
+        packageName: "react-native-linear-gradient",
+        licenseType: "The MIT License (MIT)",
+        licenseCopyright: "Copyright (c) 2016 React Native Community",
+        licenseURL: "https://github.com/react-native-linear-gradient/react-native-linear-gradient/blob/master/LICENSE"
+    },
+    {
+        packageName: "react-native-gifted-charts",
+        licenseType: "The MIT License (MIT)",
+        licenseCopyright: "Copyright (c) 2022 Abhinandan Kushwaha",
+        licenseURL: "https://github.com/Abhinandan-Kushwaha/react-native-gifted-charts/blob/master/LICENSE"
     }
     /* {
         packageName: "",
