@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { Text, View, SafeAreaView, ScrollView, FlatList, TouchableOpacity, Modal, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from "react-native"
+import { Text, View, SafeAreaView, ScrollView, FlatList, TouchableOpacity, Modal, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform, Linking } from "react-native"
 import { modalStyles } from '../../styles/MoreStyles'
 import { Ionicons } from '@expo/vector-icons'
 import { MIT, Apache, Licenses } from '../../additionalFiles/licenses'
+import { GraphInput } from './GraphInput'
 
 /* Determines the view based on what button was selected */
 export const ModalUsed = (type: string, visible: boolean) => {
@@ -20,16 +21,16 @@ export const ModalUsed = (type: string, visible: boolean) => {
         /* Determines which of the two licenses used is currently being viewed */
         if(licenseUsed.includes("MIT")) {
             return (
-            <View style={modalStyles.licenseContainer}>
-                <Text style={modalStyles.licenseText}>{MIT(copyrightUsed)}</Text>
-            </View>
+                <View style={modalStyles.licenseContainer}>
+                    <Text style={modalStyles.licenseText}>{MIT(copyrightUsed)}</Text>
+                </View>
             )
         }
         else {
             return (
-            <ScrollView  style={modalStyles.licenseContainer}>
-                <Text style={modalStyles.licenseText}>{Apache}</Text>
-            </ScrollView>
+                <ScrollView  style={modalStyles.licenseContainer}>
+                    <Text style={modalStyles.licenseText}>{Apache}</Text>
+                </ScrollView>
             )
         }
     }
@@ -38,7 +39,7 @@ export const ModalUsed = (type: string, visible: boolean) => {
     type LicenseProps = {package: string, license: string, copyright: string, url: string}
     const License = (props: LicenseProps) => {
         return (
-            <TouchableOpacity style={{backgroundColor: 'lightblue', borderColor: 'gray', borderTopWidth: 1, borderBottomWidth: 1, padding: 16, marginBottom: 4}} onPress={() => {
+            <TouchableOpacity style={modalStyles.packageButtons} onPress={() => {
                 setModalType("LicenseChosen")
                 setPackageUsed(props.package)
                 setLicenseUsed(props.license)
@@ -66,7 +67,7 @@ export const ModalUsed = (type: string, visible: boolean) => {
                             </TouchableOpacity>
                     
                             {/* Modal Type Title */}
-                            <Text style={{fontSize: 32, textAlign: 'center', paddingBottom: 32}}>{modalType}</Text>
+                            <Text style={modalStyles.modalTypeTitle}>{modalType}</Text>
                     
                             {/* Modal Type Chosen */}
                             <Text>{modalType}</Text>
@@ -82,7 +83,7 @@ export const ModalUsed = (type: string, visible: boolean) => {
                             </TouchableOpacity>
                     
                             {/* Modal Type Title */}
-                            <Text style={{fontSize: 32, textAlign: 'center', paddingBottom: 32}}>{modalType}</Text>
+                            <Text style={modalStyles.modalTypeTitle}>{modalType}</Text>
                     
                             <Text>{modalType}</Text>
                             </>
@@ -95,11 +96,12 @@ export const ModalUsed = (type: string, visible: boolean) => {
                                 <Ionicons name="chevron-back" color={'#18576D'} size={20} />
                                 <Text style={{ color: '#18576D', fontSize: 16 }}>Back</Text>
                             </TouchableOpacity>
+
+                            <Text style={modalStyles.modalTypeTitle}>{modalType}</Text>
                     
                             {/* Modal Type Title */}
-                            <Text style={{fontSize: 32, textAlign: 'center', paddingBottom: 32}}>{modalType}</Text>
-                    
-                            <Text>{modalType}</Text>
+                            <GraphInput />
+                            
                             </>
                         :
                         modalType === "Learn More"
@@ -112,7 +114,7 @@ export const ModalUsed = (type: string, visible: boolean) => {
                             </TouchableOpacity>
                     
                             {/* Modal Type Title */}
-                            <Text style={{fontSize: 32, textAlign: 'center', paddingBottom: 32}}>{modalType}</Text>
+                            <Text style={modalStyles.modalTypeTitle}>{modalType}</Text>
                     
                             <Text>{modalType}</Text>
                             </>
@@ -127,7 +129,7 @@ export const ModalUsed = (type: string, visible: boolean) => {
                             </TouchableOpacity>
                     
                             {/* Modal Type Title */}
-                            <Text style={{backgroundColor: 'white', borderTopWidth: 1, borderBottomWidth: 1, fontSize: 32, textAlign: 'center', padding: 32, margin: 0.25}}>{modalType}</Text>
+                            <Text style={modalStyles.modalTypeTitle}>{modalType}</Text>
                             
                             <FlatList 
                                 data={Licenses}
@@ -147,14 +149,15 @@ export const ModalUsed = (type: string, visible: boolean) => {
                                 </TouchableOpacity>
                         
                                 {/* Modal Type Title */}
-                                <Text style={{backgroundColor: 'white', fontSize: 32, borderTopWidth: 1, borderBottomWidth: 1, textAlign: 'center', paddingTop: 24, paddingBottom: 24}}>{packageUsed}</Text>
+                                <Text style={modalStyles.modalTypeTitle}>{packageUsed}</Text>
                         
                                 {/* Package-Specific License */}
                                 {Package(licenseUsed, copyrightUsed)}
 
                                 {/* License URL */}
-                                <View style={{justifyContent: 'center', flex: 1}}>
-                                    <Text style={{fontSize: 16, textAlign: 'center', padding: 4}}>{urlUsed}</Text>
+                                <View style={{justifyContent: 'center'}}>
+                                    <Text style={{fontSize: 18, padding: 4}}>View Repository At:</Text>
+                                    <Text onPress={() => Linking.openURL(urlUsed)} style={{color: '#18576D', fontSize: 16, textAlign: 'center', padding: 4}}>{urlUsed}</Text>
                                 </View>
                             </View>
                         }
