@@ -46,16 +46,6 @@ export const setupDatabase = async () => {
     if((await db.getAllAsync(`SELECT date from UserInfo WHERE date = ?`, dateForToday)).length === 0) { addDate(dateForToday) }
 
     console.log('Database setup complete');
-
-    /* console.log(await db.getAllAsync(`SELECT * from UserInfo ORDER BY date;`)) */
-    /* console.log(await db.getAllAsync(`SELECT * from UserInfo where date LIKE ?`, "%T%")) */
-    /* console.log(await db.getAllAsync(`SELECT * from UserInfo`)) */
-    /* console.log(await db.getAllAsync(`SELECT exName from UserInfo`)) */
-    /* console.log(await db.getAllAsync(`SELECT * from Exercise where exerciseDate = ?`, dateForToday)) */
-    /* console.log(await db.getAllAsync(`SELECT * from Exercise`)) */
-    /* console.log(await db.getAllAsync(`SELECT * from UserInfo where journalEntry IS NULL OR trim(journalEntry) = ''`)) */
-    /* await db.getAllAsync(`DELETE from UserInfo where date LIKE ?`, "%T%") */
-    /* await db.getAllAsync(`DELETE from UserInfo where journalEntry IS NULL OR trim(journalEntry) = ''`) */
 };
 
 
@@ -112,51 +102,51 @@ export const updateFood = async (textValue: string, date: string, mealType: stri
   /* Adds/Updates the breakfast meal  */
   if(mealType == "Breakfast") {
     await db.runAsync(`UPDATE UserInfo SET breakfastMeal = ? WHERE date = ? AND exDate IS NULL;`, [textValue, date])
-    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
+    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, date)))
   }
   /* Adds/Updates the lunch meal  */
   else if(mealType == "Lunch") {
     await db.runAsync(`UPDATE UserInfo SET lunchMeal = ? WHERE date = ? AND exDate IS NULL;`, [textValue, date])
-    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
+    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, date)))
   }
   /* Adds/Updates the dinner meal  */
   else if(mealType == "Dinner") {
     await db.runAsync(`UPDATE UserInfo SET dinnerMeal = ? WHERE date = ? AND exDate IS NULL;`, [textValue, date])
-    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
+    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, date)))
   }
   /* Adds/Updates the snack meal  */
   else {
     await db.runAsync(`UPDATE UserInfo SET snackMeal = ? WHERE date = ? AND exDate IS NULL;`, [textValue, date])
-    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
+    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, date)))
   }
 }
 
 /* Adds/Updates the water total  */
 export const updateWater = async (waterVal: string, date: string): Promise<void> => {
   await db.runAsync(`UPDATE UserInfo SET waterTotal = ? WHERE date = ? AND exDate IS NULL;`, [waterVal, date])
-  console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
+  console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, date)))
 }
 
 /* Adds/Updates a given mood */
 export const updateMood = async (moodVal: string, date: string, moodTimeOfDay: string): Promise<void> => {
   if(moodTimeOfDay == "Morning Mood") {
     await db.runAsync(`UPDATE UserInfo SET morningMood = ? WHERE date = ? AND exDate IS NULL`, [moodVal, date])
-    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
+    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, date)))
   }
   else if(moodTimeOfDay == "Midday Mood") {
     await db.runAsync(`UPDATE UserInfo SET middayMood = ? WHERE date = ? AND exDate IS NULL`, [moodVal, date])
-    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
+    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, date)))
   }
   else {
     await db.runAsync(`UPDATE UserInfo SET nighttimeMood = ? WHERE date = ? AND exDate IS NULL`, [moodVal, date])
-    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
+    console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, date)))
   }
 }
 
 /* Adds/Updates the sleep total */
 export const updateSleepTotal = async (sleepVal: string, date: string): Promise<void> => {
   await db.runAsync(`UPDATE UserInfo SET sleepTotal = ? WHERE date = ? AND exDate IS NULL;`, [sleepVal, date])
-  console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday)))
+  console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, date)))
 }
 
 
@@ -213,7 +203,6 @@ export const getUniqueActivities = async (): Promise<{exerciseName: string}[]> =
   return await db.getAllAsync<{exerciseName: string}> (`SELECT distinct exerciseName FROM Exercise`)
 }
 
-/* updated to not include date since the unit remains the same for all of the selected activity and we're already only gathering the first instance of a successful find; with the date, if you did not create the activity on the same day, the units will not display */
 /* Gets the unit type of a specific activity */
 export const getUnitType = async (
   exerciseName: string
@@ -287,12 +276,108 @@ export const getActivityTypeAmnt = async (
 
     // Updates activity in Exercise table to include the exerciseAmnt that the user indicated
     await db.runAsync(`UPDATE Exercise SET exerciseAmnt = ? WHERE exerciseDate = ? AND exerciseName = ?;`, [exerciseAmnt, exerciseDate, exerciseName])
-
-    /* console.log(JSON.stringify(await db.getAllAsync(`SELECT * from UserInfo WHERE date = ?`, dateForToday))) */
-    /* console.log(JSON.stringify(await db.getAllAsync(`SELECT * from Exercise WHERE exerciseDate = ? AND exerciseName = ?`, [dateForToday, exerciseName]))) */
   } catch(error) {
     console.error('Error updating activity: ', error);
     throw error;
+  }
+}
+
+/* Gets all morningMood values within a specific range */
+export const getAllMorningMoodsInRange = async (startDate: string, endDate: string): Promise<{morningMood: number}[]> => {
+  var moods = await db.getAllAsync<{morningMood: number}>(`SELECT morningMood from UserInfo WHERE date BETWEEN ? AND ? AND morningMood IS NOT NULL ORDER BY date`, [startDate, endDate])
+  if(moods.length > 0) {
+    return moods
+  }
+  else {
+    return [{morningMood: -1}]
+  }
+}
+
+/* Gets all middayMood values within a specific range */
+export const getAllMiddayMoodsInRange = async (startDate: string, endDate: string): Promise<{middayMood: number}[]> => {
+  var moods = await db.getAllAsync<{middayMood: number}>(`SELECT middayMood from UserInfo WHERE date BETWEEN ? AND ? AND middayMood IS NOT NULL ORDER BY date`, [startDate, endDate])
+  if(moods.length > 0) {
+    return moods
+  }
+  else {
+    return [{middayMood: -1}]
+  }
+}
+
+/* Gets all nighttimeMood values within a specific range */
+export const getAllNighttimeMoodsInRange = async (startDate: string, endDate: string): Promise<{nighttimeMood: number}[]> => {
+  var moods = await db.getAllAsync<{nighttimeMood: number}>(`SELECT nighttimeMood from UserInfo WHERE date BETWEEN ? AND ? AND nighttimeMood IS NOT NULL ORDER BY date`, [startDate, endDate])
+  if(moods.length > 0) {
+    return moods
+  }
+  else {
+    return [{nighttimeMood: -1}]
+  }
+}
+
+/* Gets all water totals within a specific range */
+export const getAllWaterTotalsInRange = async (startDate: string, endDate: string): Promise<{waterTotal: number}[]> => {
+  var totals = await db.getAllAsync<{waterTotal: number}>(`SELECT waterTotal from UserInfo WHERE date BETWEEN ? AND ? AND waterTotal IS NOT NULL ORDER BY date`, [startDate, endDate])
+  if(totals.length > 0) {
+    return totals
+  }
+  else {
+    return [{waterTotal: -1}]
+  }
+}
+
+/* Gets all breakfast totals within a specific range */
+export const getAllBreakfastMealsTotalsInRange = async (startDate: string, endDate: string): Promise<{breakfastMeal: number}[]> => {
+  var totals = await db.getAllAsync<{breakfastMeal: number}>(`SELECT breakfastMeal from UserInfo WHERE date BETWEEN ? AND ? AND breakfastMeal IS NOT NULL ORDER BY date`, [startDate, endDate])
+  if(totals.length > 0) {
+    return totals
+  }
+  else {
+    return [{breakfastMeal: -1}]
+  }
+}
+
+/* Gets all lunch totals within a specific range */
+export const getAllLunchMealsTotalsInRange = async (startDate: string, endDate: string): Promise<{lunchMeal: number}[]> => {
+  var totals = await db.getAllAsync<{lunchMeal: number}>(`SELECT lunchMeal from UserInfo WHERE date BETWEEN ? AND ? AND lunchMeal IS NOT NULL ORDER BY date`, [startDate, endDate])
+  if(totals.length > 0) {
+    return totals
+  }
+  else {
+    return [{lunchMeal: -1}]
+  }
+}
+
+/* Gets all dinner totals within a specific range */
+export const getAllDinnerMealsTotalsInRange = async (startDate: string, endDate: string): Promise<{dinnerMeal: number}[]> => {
+  var totals = await db.getAllAsync<{dinnerMeal: number}>(`SELECT dinnerMeal from UserInfo WHERE date BETWEEN ? AND ? AND dinnerMeal IS NOT NULL ORDER BY date`, [startDate, endDate])
+  if(totals.length > 0) {
+    return totals
+  }
+  else {
+    return [{dinnerMeal: -1}]
+  }
+}
+
+/* Gets all snack totals within a specific range */
+export const getAllSnackMealsTotalsInRange = async (startDate: string, endDate: string): Promise<{snackMeal: number}[]> => {
+  var totals = await db.getAllAsync<{snackMeal: number}>(`SELECT snackMeal from UserInfo WHERE date BETWEEN ? AND ? AND waterTotal IS NOT NULL ORDER BY date`, [startDate, endDate])
+  if(totals.length > 0) {
+    return totals
+  }
+  else {
+    return [{snackMeal: -1}]
+  }
+}
+
+/* Gets all sleep totals within a specific range */
+export const getAllSleepTotalsInRange = async (startDate: string, endDate: string): Promise<{sleepTotal: number}[]> => {
+  var totals = await db.getAllAsync<{sleepTotal: number}>(`SELECT sleepTotal from UserInfo WHERE date BETWEEN ? AND ? AND sleepTotal IS NOT NULL ORDER BY date`, [startDate, endDate])
+  if(totals.length > 0) {
+    return totals
+  }
+  else {
+    return [{sleepTotal: -1}]
   }
 }
 
