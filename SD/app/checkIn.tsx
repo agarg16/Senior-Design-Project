@@ -270,7 +270,7 @@ const CheckIn = () => {
   
   
   useEffect(() => { setUpdatedDate(updateDateWith) }, [updateDateWith])
-  useEffect(() => { setUpdateCurDateWith(updatedDate.toISOString()) }, [updatedDate])
+  useEffect(() => { setUpdateCurDateWith(updatedDate.toISOString().split("T")[0]) }, [updatedDate])
   useEffect(() => { setCurDate(updateCurDateWith) }, [updateCurDateWith])
 
   return (
@@ -279,7 +279,7 @@ const CheckIn = () => {
         <SafeAreaView style={styles.container}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? "padding" : undefined} style={{ flex: 1 }}>
             <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-              <TouchableOpacity style={styles.arrowButtonsLocation} onPress={() => {
+              <TouchableOpacity style={[styles.arrowButtonsLocation, {alignItems: 'flex-end'}]} onPress={() => {
                 currentDay = new Date(updateDateWith.getFullYear(), updateDateWith.getMonth(), updateDateWith.getDate() - 1)
                 currentDay.setHours(updateDateWith.getHours())
                 setUpdateDateWith(currentDay)
@@ -292,7 +292,7 @@ const CheckIn = () => {
                 currentDay = new Date(currentDay.getFullYear(), currentDay.getMonth(), currentDay.getDate())
                 setUpdateDateWith(currentDay);
               }}>
-                <Text style={{ fontSize: 38, textAlign: 'center', width: 280 }}>{getMonthName(updateDateWith.getMonth())} {updateDateWith.getDate()}, {updateDateWith.getFullYear()}</Text>
+                <Text style={{fontSize: 32, textAlign: 'center', width: 310 }}>{getMonthName(updateDateWith.getMonth())} {updateDateWith.getDate()}, {updateDateWith.getFullYear()}</Text>
               </TouchableWithoutFeedback>
               <TouchableOpacity style={styles.arrowButtonsLocation} onPress={() => {
                 currentDay = new Date(updatedDate.getFullYear(), updatedDate.getMonth(), updatedDate.getDate() + 1)
@@ -411,11 +411,6 @@ const CheckIn = () => {
                       selectedActivityUnit={selectedActivityUnit}
                       selectedActivityText={String(textInputVal)}
                     />
-
-                    {/* Delete Button */}
-                    <TouchableOpacity style={{backgroundColor: 'lightblue', borderColor: '#5a7077', borderWidth: 2, borderRadius: 8, alignSelf: 'center', width: '40%', height: 50, position: 'absolute', bottom: '20%', justifyContent: 'center'}} onPress={() => console.log("Delete Button Pressed...")}>
-                      <Text style={{color: '#3D3C3C', textAlign: 'center', fontSize: 16, textDecorationLine: 'underline'}}>Delete Activity</Text>
-                    </TouchableOpacity>
                   </>
               :
                 <CreateModal
