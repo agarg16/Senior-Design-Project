@@ -23,6 +23,7 @@ const Index = () => {
   const [curStartingDayOfWeek, setCurStartingDayOfWeek] = useState(new Date(curDate.getFullYear(), curDate.getMonth(), 1).getDay());
   const [numDaysInCurMonth, setNumDaysInCurMonth] = useState(new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate());
   const [visibleEntry, setVisibleEntry] = useState("");
+  const [updateCurDay, setUpdateCurDay] = useState(false);
   
 
   const updateCalendarHeader = (directionChanged: number) => {
@@ -43,7 +44,7 @@ const Index = () => {
     else { setVisibleEntry(entry); }
   };
 
-  useEffect(() => { getCurDateEntry((new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate())).toISOString().split("T")[0]) }, [viewModalVisible === true, curDay]);
+  useEffect(() => { getCurDateEntry((new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate())).toISOString().split("T")[0]) }, [viewModalVisible === true, updateCurDay, curDay]);
   useEffect(() => { modalType === 0 ? setModalTypeSelected("journal-entry") : setModalTypeSelected("search") }, [modalType]);
 
   return (
@@ -81,6 +82,7 @@ const Index = () => {
                 <TouchableWithoutFeedback onPress={() => {
                   const today = new Date();
                   curDate.setFullYear(today.getFullYear(), today.getMonth(), today.getDate());
+                  setUpdateCurDay(!updateCurDay);
                   setCurDay(today.getDate());
                   setCurMonth(today.getMonth());
                   setCurYear(today.getFullYear());
@@ -121,6 +123,7 @@ const Index = () => {
                 onPress={() => {
                   const today = new Date();
                   curDate.setFullYear(today.getFullYear(), today.getMonth(), today.getDate());
+                  setUpdateCurDay(!updateCurDay);
                   setCurDay(today.getDate());
                   setCurMonth(today.getMonth());
                   setCurYear(today.getFullYear());
