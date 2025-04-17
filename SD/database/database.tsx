@@ -237,8 +237,24 @@ export const getActivityTypeAmnt = async (
   }
 };
 
+/* Adds a given activity to the database if it doesn't already exist in the table */
+export const addExercise = async (exerciseDate: string, exerciseName: string, exerciseUnit: string): Promise<void> => {
+  console.log(exerciseName)
+  if((await db.getAllAsync(`SELECT exerciseName from Exercise where exerciseName = ?`, exerciseName)).length === 0) {
+    console.log("New Exercise Name Added to Exercise...")
+    try {
+      await db.runAsync(`INSERT INTO Exercise (exerciseDate, exerciseName, exerciseAmnt, exerciseUnit) VALUES (?, ?, ?, ?);`, [exerciseDate, exerciseName, 0, exerciseUnit])
+      console.log("Added " + exerciseName + " for " + exerciseDate)
+    }
+    catch (error) { console.log(error) }
+  }
+  else { console.log("Exercise name already exists in the database (no new name added)") }
+}
+
 /* Adds a new custom activity to the Exercise table */
  export const addActivity = async (exerciseDate: string, exerciseName: string, exerciseUnit: string): Promise<void> => {
+  addExercise(exerciseDate, exerciseName, exerciseUnit)
+
    // Check if current activity name exists (and creates a new row of a default version of that activity if it does not)
    if((await db.getAllAsync(`SELECT exerciseName from Exercise WHERE exerciseDate = ?`, exerciseDate)).length === 0) {
      try {
