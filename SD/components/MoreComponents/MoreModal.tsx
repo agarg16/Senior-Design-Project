@@ -4,6 +4,7 @@ import { modalStyles } from '../../styles/MoreStyles'
 import { Ionicons } from '@expo/vector-icons'
 import { MIT, Apache, Licenses } from '../../additionalFiles/licenses'
 import { GraphInput } from './GraphInput'
+import { SelfAssessment } from './SelfAssessment' 
 
 /* Determines the view based on what button was selected */
 export const ModalUsed = (type: string, visible: boolean) => {
@@ -85,7 +86,7 @@ export const ModalUsed = (type: string, visible: boolean) => {
                             {/* Modal Type Title */}
                             <Text style={modalStyles.modalTypeTitle}>{modalType}</Text>
                     
-                            <Text>{modalType}</Text>
+                            <SelfAssessment />
                             </>
                         :
                         modalType === "Graphs"
