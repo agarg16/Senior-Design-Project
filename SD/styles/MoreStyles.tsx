@@ -62,6 +62,68 @@ export const modalStyles = StyleSheet.create({
     padding: 32,
     margin: 0.25
   },
+  assessmentContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  rangeSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  rangeButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#F0F4F8',
+  },
+  selectedRange: {
+    backgroundColor: '#18576D',
+  },
+  rangeButtonText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  selectedRangeText: {
+    fontSize: 16,
+    color: 'white',
+  },
+  insightsContainer: {
+    paddingBottom: 20,
+  },
+  insightCard: {
+    flexDirection: 'row',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  insightEmoji: {
+    fontSize: 32,
+    marginRight: 16,
+    width: 40, 
+    textAlign: 'center',
+  }, 
+  insightTextContainer: {
+    flex: 1,
+  },
+  insightTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#18576D',
+    marginBottom: 4,
+  },
+  insightValue: {
+    fontSize: 14,
+    color: '#666',
+  },
+  noDataText: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 20,
+  },
   graphInputBox: {
     backgroundColor: 'white',
     borderWidth: 2,
