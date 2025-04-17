@@ -341,6 +341,35 @@ export const updateActivity = async (exerciseDate: string, exerciseName: string,
     console.error('Error updating activity:', error);
     throw error;
   }
+<<<<<<< Updated upstream
 };
 
+=======
+  else {
+    return [{dinnerMeal: -1}]
+  }
+}
+
+/* Gets all snack totals within a specific range */
+export const getAllSnackMealsTotalsInRange = async (startDate: string, endDate: string): Promise<{snackMeal: number}[]> => {
+  var totals = await db.getAllAsync<{snackMeal: number}>(`SELECT snackMeal from UserInfo WHERE date BETWEEN ? AND ? AND waterTotal IS NOT NULL ORDER BY date`, [startDate, endDate])
+  if(totals.length > 0) {
+    return totals
+  }
+  else {
+    return [{snackMeal: -1}]
+  }
+}
+
+/* Gets all sleep totals within a specific range */
+export const getAllSleepTotalsInRange = async (startDate: string, endDate: string): Promise<{sleepTotal: number}[]> => {
+  var totals = await db.getAllAsync<{sleepTotal: number}>(`SELECT sleepTotal from UserInfo WHERE date BETWEEN ? AND ? AND sleepTotal IS NOT NULL ORDER BY date`, [startDate, endDate])
+  if(totals.length > 0) {
+    return totals
+  }
+  else {
+    return [{sleepTotal: -1}]
+  }
+}
+>>>>>>> Stashed changes
 export default () => db;
